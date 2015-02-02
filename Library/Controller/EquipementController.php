@@ -2,12 +2,16 @@
 
 namespace Library\Controller;
 
+use Library\Entity\Equipement;
+use Library\Model\EquipementManager;
+use Library\PDOProvider;
+
 class EquipementController {
 
 	public function readUnique($id) {
 		header('Content-Type: application/json');
 		
-		$equipementManager = new \Library\Model\EquipementManager(\Library\PDOProvider::getInstance());
+		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 		$equipement = $equipementManager->getUnique($id);
 
 		$jsonEquipement = array(
@@ -33,11 +37,11 @@ class EquipementController {
 	}
 
 	public function read() {
-		$equipementManager = new \Library\Model\EquipementManager(\Library\PDOProvider::getInstance());
+		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 		$equipementList = $equipementManager->get();
 
 		$jsonEquipementList = array();
-		/* @var $equipement \Library\Entity\Equipement */
+		/* @var $equipement Equipement */
 		foreach ($equipementList as $equipement) {
 			$jsonEquipementList[] = array(
 				'id' => $equipement->getId(),
@@ -64,7 +68,7 @@ class EquipementController {
 	public function create() {
 		$jsonResponse = array();
 
-		$equipementManager = new \Library\Model\EquipementManager(\Library\PDOProvider::getInstance());
+		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 
 		$id = $_POST['id'];
 		$type = $_POST['type'];
@@ -76,7 +80,7 @@ class EquipementController {
 		$utilisateur = $_POST['utilisateur'];
 		$numeroSupport = $_POST['numero_support'];
 
-		$equipement = new Library\Entity\Equipement();
+		$equipement = new Equipement();
 		$equipement->setId($id);
 		$equipement->setType($type);
 		$equipement->setFabricant($fabricant);
@@ -102,7 +106,7 @@ class EquipementController {
 	public function update($oldId) {
 		$jsonResponse = array();
 
-		$equipementManager = new \Library\Model\EquipementManager(\Library\PDOProvider::getInstance());
+		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 		$equipement = $equipementManager->getUnique($oldId);
 		
 		$id = $_POST['id'];

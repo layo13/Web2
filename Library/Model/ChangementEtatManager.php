@@ -37,20 +37,14 @@ class ChangementEtatManager {
 		foreach ($requete->fetchAll() as $row) {
 			
 			$changementEtat = new ChangementEtat();
-			$changementEtat->setId($row['id']);
-			$changementEtat->setPere($row['pere']);
-			$changementEtat->setEtatTechnique($row['etat_technique']);
+			$changementEtat->setDate($row['date']);
+			$changementEtat->setEquipement($row['equipement']);
 			$changementEtat->setEtatFonctionnel($row['etat_fonctionnel']);
-			$changementEtat->setFabricant($row['fabricant']);
+			$changementEtat->setEtatTechnique($row['etat_technique']);
 			$changementEtat->setType($row['type']);
-			$changementEtat->setNom($row['nom']);
-			$changementEtat->setAdresseIp($row['adresse_ip']);
-			$changementEtat->setAdressePhysique($row['adresse_physique']);
-			$changementEtat->setMessageMaintenance($row['message_maintenance']);
-			$changementEtat->setNumeroSupport($row['numero_support']);
-			$changementEtat->setUtilisateur($row['utilisateur']);
+			$changementEtat->setMessage($row['message']);
 			
-			$changementEtatList[] = changementEtat;
+			$changementEtatList[] = $changementEtat;
 		}
 		return $changementEtatList;
 	}

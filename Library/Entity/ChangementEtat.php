@@ -53,8 +53,8 @@ class ChangementEtat {
 		return $this;
 	}
 
-	function setEtatFechnique($etatFechnique) {
-		$this->etatFechnique = $etatFechnique;
+	function setEtatTechnique($etatTechnique) {
+		$this->etatTechnique = $etatTechnique;
 		return $this;
 	}
 

@@ -48,7 +48,7 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	echo $equipementController->readUnique($id);
 } else if (preg_match("`^/api/equipement$`", $requestUri, $matches) && $requestMethod == "POST") {
 	$equipementController = new Library\Controller\EquipementController();
-	echo $equipementController->add();
+	echo $equipementController->create();
 } else if (preg_match("`^/api/equipement/([a-z0-9]+)$`i", $requestUri, $matches) && $requestMethod == "POST") {
 	$equipementController = new Library\Controller\EquipementController();
 	$id = $matches[1];
@@ -117,7 +117,7 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	foreach ($changementEtatList as $changementEtat) {
 		$jsonChangementEtatList[] = array(
 			'date' => $changementEtat->getDate(),
-			'equipement' => $changementEtat>getEquipement(),
+			'equipement' => $changementEtat->getEquipement(),
 			'etatFonctionnel' => $changementEtat->getEtatFonctionnel(),
 			'etatTechnique' => $changementEtat->getEtatTechnique(),
 			'type' => $changementEtat->getType(),
