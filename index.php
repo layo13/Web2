@@ -94,17 +94,39 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	$etatFonctionnelManager = new \Library\Model\EtatFonctionnelManager($pdo);
 	$etatFonctionnelList = $etatFonctionnelManager->get();
 
-	$jsonetatFonctionnelList = array();
+	$jsonEtatFonctionnelList = array();
 	/* @var $equipement \Library\Entity\EtatFonctionnel */
 	foreach ($etatFonctionnelList as $etatFonctionnel) {
-		$jsonetatFonctionnelList[] = array(
+		$jsonEtatFonctionnelList[] = array(
 			'id' => $etatFonctionnel->getId(),
 			'libelle' => $etatFonctionnel->getLibelle()
 		);
 	}
 	$jsonResponse = array(
 		"state" => "ok",
-		"content" => $jsonetatFonctionnelList
+		"content" => $jsonEtatFonctionnelList
+	);
+	echo json_encode($jsonResponse);
+} else if (preg_match("`^/api/changement_etat`", $requestUri, $matches) && $requestMethod == "GET") {
+	header('Content-Type: application/json');
+	$changementEtatManager = new \Library\Model\ChangementEtatManager($pdo);
+	$changementEtatList = $changementEtatManager->get();
+
+	$jsonChangementEtatList = array();
+	/* @var $changementEtat \Library\Entity\ChangementEtat */
+	foreach ($changementEtatList as $changementEtat) {
+		$jsonChangementEtatList[] = array(
+			'date' => $changementEtat->getDate(),
+			'equipement' => $changementEtat>getEquipement(),
+			'etatFonctionnel' => $changementEtat->getEtatFonctionnel(),
+			'etatTechnique' => $changementEtat->getEtatTechnique(),
+			'type' => $changementEtat->getType(),
+			'message' => $changementEtat->getMessage()
+		);
+	}
+	$jsonResponse = array(
+		"state" => "ok",
+		"content" => $jsonChangementEtatList
 	);
 	echo json_encode($jsonResponse);
 } else {
