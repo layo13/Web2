@@ -9,7 +9,7 @@
 		<link rel="stylesheet" href="<?php echo $url; ?>css/bootstrap-theme.min.css">
 		<link rel="stylesheet" href="<?php echo $url; ?>css/font-awesome.min.css">
 		<style type="text/css">
-			#equipement_list {		
+			#equipement_list, #changement_etat_list {		
 				max-height: 500px;
 				overflow-y: scroll;
 			}
@@ -61,16 +61,29 @@
 					</object>-->
 					<svg width="100%" height="600" style="border: 2px solid black;">
 					<circle id="C-G453SR65" cx="40" cy="40" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
-					<circle id="C-G5TRI6GH" cx="120" cy="120" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
+					<circle id="C-G5TRI6GH" cx="200" cy="200" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
 					<circle id="C-RG5TB7H8" cx="200" cy="40" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
 					<circle id="C-SR65G453" cx="40" cy="200" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
-					<line x1="40" y1="40" x2="120" y2="120" style="stroke:#000000;" data-from="C-G453SR65" data-to="C-G5TRI6GH" />
-					<line x1="200" y1="40" x2="120" y2="120" style="stroke:#000000;" data-from="C-RG5TB7H8" data-to="C-G5TRI6GH" />
-					<line x1="40" y1="200" x2="120" y2="120" style="stroke:#000000;" data-from="C-SR65G453" data-to="C-G5TRI6GH" />
+					<line x1="40" y1="40" x2="200" y2="200" style="stroke:#000000;" data-from="C-G453SR65" data-to="C-G5TRI6GH" />
+					<line x1="200" y1="40" x2="200" y2="200" style="stroke:#000000;" data-from="C-RG5TB7H8" data-to="C-G5TRI6GH" />
+					<line x1="40" y1="200" x2="200" y2="200" style="stroke:#000000;" data-from="C-SR65G453" data-to="C-G5TRI6GH" />
 					</svg>
 				</div>
-				<div id="debug" class="col-md-3">
+				<div class="col-md-3">
+					
+					<a id="example" tabindex="0" class="btn btn-xs btn-info" role="button" data-toggle="popover" data-placement="left" data-trigger="focus" title="Dismissible popover" data-content="And here's some amazing content. It's very engaging. Right?">
+						<span class="glyphicon glyphicon-new-window"></span>
+					</a>
 
+					
+					<div id="changement_etat_list" class="panel panel-default">
+						<div class="panel-heading">
+							<h3 class="panel-title">Journal</h3>
+						</div>
+					</div>
+					<div id="debug">
+
+					</div>
 				</div>
 			</div>
 		</div>
@@ -97,7 +110,7 @@
 		<script src="<?php echo $url; ?>js/jquery.min.js"></script>
 		<script src="<?php echo $url; ?>js/bootstrap.min.js"></script>
 		<script>
-			// Gestion du svg
+						// Gestion du svg
 						var selectedElement = 0;
 						var currentX = 0;
 						var currentY = 0;
@@ -125,19 +138,18 @@
 							currentMatrix[4] += dx;
 							currentMatrix[5] += dy;
 							newMatrix = "matrix(" + currentMatrix.join(' ') + ")";
-							
+
 							// debut
 							var lines = document.getElementsByTagName("line");
-							//console.log(selectedElement, selectedElement.id, dx, dy, currentMatrix[4], currentMatrix[5]);
 							for (var i = 0; i < lines.length; i++) {
 								var line = lines[i];
-								console.log(line.dataset, line.dataset.to, line.dataset.from, selectedElement.id);
+
 								if (line.dataset.from === selectedElement.id) {
 									var currentX1 = parseInt(line.getAttribute("x1")) + dx;
 									var currentY1 = parseInt(line.getAttribute("y1")) + dy;
 									line.setAttribute("x1", currentX1);
 									line.setAttribute("y1", currentY1);
-									
+
 								}
 								if (line.dataset.to === selectedElement.id) {
 									var currentX2 = parseInt(line.getAttribute("x2")) + dx;
@@ -147,7 +159,7 @@
 								}
 							}
 							// fin
-		
+
 							selectedElement.setAttributeNS(null, "transform", newMatrix);
 							currentX = evt.clientX;
 							currentY = evt.clientY;
@@ -161,11 +173,14 @@
 								selectedElement = 0;
 							}
 						}
-						
+
 						$(function () {
+							$('#example').popover();
+							
+							
 							function initSSE() {
 								if (typeof (EventSource) !== "undefined") {
-									var source = new EventSource("<?php echo $url . "sse"; ?>");
+									var source = new EventSource("<?php echo $url . "sse/equipement"; ?>");
 									source.onmessage = function (event) {
 										//document.getElementById("main").innerHTML += event.data + "<br>";
 										var json = JSON.parse(event.data);
@@ -200,11 +215,11 @@
 													$(divBtnGroup).append(btnUpdate);
 													$(btnDelete).append(spanGlyphiconTrash);
 													$(divBtnGroup).append(btnDelete);
-													
+
 													$(li).append(divBtnGroup);
 													$(li).append(" " + jsonEquipement.id + " - " + jsonEquipement.nom);
-													
-													$("ul.list-group").append(li);
+
+													$("ul_equipement").append(li);
 												}
 											}
 											//removOld
@@ -220,6 +235,41 @@
 												}
 												if (found === false) {
 													$(liEquipement).remove();
+												}
+											}
+										}
+									};
+								} else {
+									document.getElementById("main").innerHTML = "Sorry, your browser does not support server-sent events...";
+								}
+							}
+							function initSSEChangementEtat() {
+								if (typeof (EventSource) !== "undefined") {
+									var source = new EventSource("<?php echo $url . "sse/changement-etat"; ?>");
+									source.onmessage = function (event) {
+										var json = JSON.parse(event.data);
+										if (json.state === "ok") {
+											var jsonChangementEtatList = json.content;
+											//addNew
+											for (var i = 0; i < jsonChangementEtatList.length; i++) {
+												var found = false;
+												var jsonChangementEtat = jsonChangementEtatList[i];
+												for (var j = 0; j < $("li[data-changement-etat-id]").length; j++) {
+													var liChangementEtat = $("li[data-changement-etat-id]")[j];
+													
+													if (jsonChangementEtat.id === $(liChangementEtat).attr("data-changement-etat-id")) {
+														found = true;
+														break;
+													}
+												}
+												if (found === false) {
+													
+													var li = $("<li/>", {"class": "list-group-item", "data-changement-etat-id": jsonChangementEtat.id});
+													
+													$(li).append(jsonChangementEtat.date);
+													console.log(new Date(jsonChangementEtat.date));
+													
+													$("#ul_changement_etat").append(li);
 												}
 											}
 										}
@@ -457,6 +507,7 @@
 										type: $this.attr('method'),
 										data: $this.serialize(),
 										success: function (html) {
+											$("#myModal").modal('hide');
 											$("#debug").html(html);
 										}
 									});
@@ -494,11 +545,10 @@
 									type: "GET",
 									//data: $this.serialize(),
 									success: function (json) {
-										console.log(json);
 										if (json.state === "ko") {
 											alert(json.error);
 										} else {
-											var ul = $("<ul/>", {"class": "list-group"});
+											var ul = $("<ul/>", {"id": "ul_equipement", "class": "list-group"});
 											var jsonEquipements = json.content;
 											for (var i = 0; i < jsonEquipements.length; ++i) {
 												var jsonEquipement = jsonEquipements[i];
@@ -516,10 +566,10 @@
 												$(divBtnGroup).append(btnUpdate);
 												$(btnDelete).append(spanGlyphiconTrash);
 												$(divBtnGroup).append(btnDelete);
-												
+
 												$(li).append(divBtnGroup);
 												$(li).append(" " + jsonEquipement.id + " - " + jsonEquipement.nom);
-												
+
 												$(ul).append(li);
 											}
 
@@ -529,8 +579,41 @@
 									}
 								});
 							}
+							function initChangementEtatList() {
+								$.ajax({
+									url: "<?php echo $url . "api/changement-etat"; ?>",
+									type: "GET",
+									//data: $this.serialize(),
+									success: function (json) {
+										console.log(json);
+										if (json.state === "ko") {
+											alert(json.error);
+										} else {
+											console.log(json.content);
+											var ul = $("<ul/>", {"id": "ul_changement_etat", "class": "list-group"});
+											var jsonChangementEtatList = json.content;
+											for (var i = 0; i < jsonChangementEtatList.length; ++i) {
+												var jsonChangementEtat = jsonChangementEtatList[i];
+												console.log(jsonChangementEtat);
+												var li = $("<li/>", {"class": "list-group-item", "data-changement-etat-id": jsonChangementEtat.id});
+												var spanGlyphiconCheck = $("<span/>", {"class": "glyphicon glyphicon-check"});
+												var btnRead = $("<button/>", {"type": "button", "class": "btn btn-info btn-xs", "data-changement-etat-equipement": jsonChangementEtat.equipement, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"});
+
+												$(li).append(jsonChangementEtat.date);
+
+												$(ul).append(li);
+											}
+
+											$("#changement_etat_list").append(ul);
+
+										}
+									}
+								});
+							}
 							initEquipementList();
+							initChangementEtatList();
 							initSSE();
+							initSSEChangementEtat();
 						});
 		</script>
 	</body>

@@ -29,7 +29,7 @@ $pdo = \Library\PDOProvider::getInstance();
 
 if (preg_match("`^/$`", $requestUri, $matches)) {
 	require_once(__DIR__ . '/views/main.php');
-} else if (preg_match("`^/sse$`", $requestUri, $matches)) {
+} else if (preg_match("`^/sse/equipement$`", $requestUri, $matches)) {
 	header('Content-Type: text/event-stream');
 	header('Cache-Control: no-cache');
 
@@ -37,6 +37,33 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	
 	$data = $equipementController->read();
 	echo "data: {$data}\n\n";
+	flush();
+} else if (preg_match("`^/sse/changement-etat`", $requestUri, $matches)) {
+	header('Content-Type: text/event-stream');
+	header('Cache-Control: no-cache');
+
+	$changementEtatManager = new \Library\Model\ChangementEtatManager($pdo);
+	$changementEtatList = $changementEtatManager->get();
+
+	$jsonChangementEtatList = array();
+	/* @var $changementEtat \Library\Entity\ChangementEtat */
+	foreach ($changementEtatList as $changementEtat) {
+		$jsonChangementEtatList[] = array(
+			'id' => $changementEtat->getId(),
+			'date' => $changementEtat->getDate(),
+			'equipement' => $changementEtat->getEquipement(),
+			'etatFonctionnel' => $changementEtat->getEtatFonctionnel(),
+			'etatTechnique' => $changementEtat->getEtatTechnique(),
+			'type' => $changementEtat->getType(),
+			'message' => $changementEtat->getMessage()
+		);
+	}
+	$jsonResponse = array(
+		"state" => "ok",
+		"content" => $jsonChangementEtatList
+	);
+	
+	echo "data: " . json_encode($jsonResponse) . "\n\n";
 	flush();
 } else if (preg_match("`^/api/equipement$`", $requestUri, $matches) && $requestMethod == "GET") {
 	header('Content-Type: application/json');
@@ -107,7 +134,7 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 		"content" => $jsonEtatFonctionnelList
 	);
 	echo json_encode($jsonResponse);
-} else if (preg_match("`^/api/changement_etat`", $requestUri, $matches) && $requestMethod == "GET") {
+} else if (preg_match("`^/api/changement-etat`", $requestUri, $matches) && $requestMethod == "GET") {
 	header('Content-Type: application/json');
 	$changementEtatManager = new \Library\Model\ChangementEtatManager($pdo);
 	$changementEtatList = $changementEtatManager->get();
@@ -116,11 +143,12 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	/* @var $changementEtat \Library\Entity\ChangementEtat */
 	foreach ($changementEtatList as $changementEtat) {
 		$jsonChangementEtatList[] = array(
-			'date' => $changementEtat->getDate(),
+			'id' => $changementEtat->getId(),
 			'equipement' => $changementEtat->getEquipement(),
 			'etatFonctionnel' => $changementEtat->getEtatFonctionnel(),
 			'etatTechnique' => $changementEtat->getEtatTechnique(),
 			'type' => $changementEtat->getType(),
+			'date' => $changementEtat->getDate(),
 			'message' => $changementEtat->getMessage()
 		);
 	}

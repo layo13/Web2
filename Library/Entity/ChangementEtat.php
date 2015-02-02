@@ -3,15 +3,20 @@
 namespace Library\Entity;
 
 class ChangementEtat {
-	private $date;
+	private $id;
 	private $equipement;
 	private $etatFonctionnel;
 	private $etatTechnique;
 	private $type;
+	private $date;
 	private $message;
 	
 	public function __construct() {
 		$this->date = date('Y-m-d H:i:s');
+	}
+	
+	function getId() {
+		return $this->id;
 	}
 	
 	function getDate() {
@@ -36,6 +41,11 @@ class ChangementEtat {
 
 	function getMessage() {
 		return $this->message;
+	}
+
+	function setId($id) {
+		$this->id = $id;
+		return $this;
 	}
 
 	function setDate($date) {
