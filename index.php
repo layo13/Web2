@@ -29,6 +29,8 @@ $pdo = \Library\PDOProvider::getInstance();
 
 if (preg_match("`^/$`", $requestUri, $matches)) {
 	require_once(__DIR__ . '/views/main.php');
+} else if (preg_match("`^/simulator$`", $requestUri, $matches)) {
+	require_once(__DIR__ . '/views/simulator.php');
 } else if (preg_match("`^/sse/equipement$`", $requestUri, $matches)) {
 	header('Content-Type: text/event-stream');
 	header('Cache-Control: no-cache');
@@ -71,7 +73,7 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	echo $equipementController->read();
 } else if (preg_match("`^/api/equipement/([a-z0-9]+)$`i", $requestUri, $matches) && $requestMethod == "GET") {
 	$id = $matches[1];
-	$equipementController = new Library\Controller\EquipementController($id);
+	$equipementController = new Library\Controller\EquipementController();
 	echo $equipementController->readUnique($id);
 } else if (preg_match("`^/api/equipement$`", $requestUri, $matches) && $requestMethod == "POST") {
 	$equipementController = new Library\Controller\EquipementController();
@@ -80,6 +82,12 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	$equipementController = new Library\Controller\EquipementController();
 	$id = $matches[1];
 	echo $equipementController->update($id);
+} else if (preg_match("`^/api/equipement/([a-z0-9]+)$`i", $requestUri, $matches) && $requestMethod == "DELETE") {
+	
+	
+	$equipementController = new Library\Controller\EquipementController();
+	$id = $matches[1];
+	echo $equipementController->delete($id);
 } else if (preg_match("`^/api/type_equipement$`", $requestUri, $matches) && $requestMethod == "GET") {
 	header('Content-Type: application/json');
 	$typeEquipementManager = new \Library\Model\TypeEquipementManager($pdo);

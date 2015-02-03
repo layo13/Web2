@@ -141,8 +141,16 @@ class EquipementController {
 		return json_encode($jsonResponse);
 	}
 
-	public function delete() {
+	public function delete($id) {
+		header('Content-Type: application/json');
 		
+		$equipementManager = new EquipementManager(PDOProvider::getInstance());
+		if ($equipementManager->delete($id)) {
+			$jsonResponse["state"] = "ok";
+		} else {
+			$jsonResponse["state"] = "ko";
+		}
+		return json_encode($jsonResponse);
 	}
 
 }

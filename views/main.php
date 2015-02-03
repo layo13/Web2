@@ -10,7 +10,7 @@
 		<link rel="stylesheet" href="<?php echo $url; ?>css/font-awesome.min.css">
 		<style type="text/css">
 			#equipement_list, #changement_etat_list {		
-				max-height: 500px;
+				max-height: 300px;
 				overflow-y: scroll;
 			}
 
@@ -65,23 +65,24 @@
 						<embed src="test.svg" width="500" height="500" type="image/svg+xml" />
 					</object>-->
 					<svg width="100%" height="600" style="border: 2px solid black;">
+					<line x1="40" y1="40" x2="200" y2="200" style="stroke:#000000;" data-from="C-G453SR65" data-to="C-G5TRI6GH" />
+					<line x1="200" y1="40" x2="200" y2="200" style="stroke:#000000;" data-from="C-RG5TB7H8" data-to="C-G5TRI6GH" />
+					<line x1="40" y1="200" x2="200" y2="200" style="stroke:#000000;" data-from="C-SR65G453" data-to="C-G5TRI6GH" />
+					
 					<circle id="C-G453SR65" cx="40" cy="40" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
 					<circle id="C-G5TRI6GH" cx="200" cy="200" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
 					<circle id="C-RG5TB7H8" cx="200" cy="40" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
 					<circle id="C-SR65G453" cx="40" cy="200" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
-					<line x1="40" y1="40" x2="200" y2="200" style="stroke:#000000;" data-from="C-G453SR65" data-to="C-G5TRI6GH" />
-					<line x1="200" y1="40" x2="200" y2="200" style="stroke:#000000;" data-from="C-RG5TB7H8" data-to="C-G5TRI6GH" />
-					<line x1="40" y1="200" x2="200" y2="200" style="stroke:#000000;" data-from="C-SR65G453" data-to="C-G5TRI6GH" />
 					</svg>
 				</div>
 				</div>
 				<div class="col-md-3">
-					
+					<a id="link_simulator" href="#" class="btn btn-primary btn-lg">
+						<span class="glyphicon glyphicon-new-window"></span> Accéder au simulateur
+					</a>
 					<a id="example" tabindex="0" class="btn btn-xs btn-info" role="button" data-toggle="popover" data-placement="left" data-trigger="focus" title="Dismissible popover" data-content="And here's some amazing content. It's very engaging. Right?">
 						<span class="glyphicon glyphicon-new-window"></span>
 					</a>
-
-					
 					<div id="changement_etat_list" class="panel panel-default">
 						<div class="panel-heading">
 							<h3 class="panel-title">Journal</h3>
@@ -179,17 +180,25 @@
 								selectedElement = 0;
 							}
 						}
+						
+						/*(function(i){
+							alert(i);
+						})(2);*/
 
 						$(function () {
 							$('#example').popover();
 							
+							$('#link_simulator').click(function(event) {
+								event.preventDefault();
+								window.open("<?php echo $url . "simulator"; ?>");
+							});
 							
 							function initSSE() {
 								if (typeof (EventSource) !== "undefined") {
 									var source = new EventSource("<?php echo $url . "sse/equipement"; ?>");
 									source.onmessage = function (event) {
-										//document.getElementById("main").innerHTML += event.data + "<br>";
 										var json = JSON.parse(event.data);
+										
 										if (json.state === "ok") {
 											var jsonEquipementList = json.content;
 
@@ -200,12 +209,12 @@
 
 												for (var j = 0; j < $("li[data-equipement-id]").length; j++) {
 													var liEquipement = $("li[data-equipement-id]")[j];
-
 													if (jsonEquipement.id === $(liEquipement).attr("data-equipement-id")) {
 														found = true;
 														break;
 													}
 												}
+
 												if (found === false) {
 													var li = $("<li/>", {"class": "list-group-item", "data-equipement-id": jsonEquipement.id, "data-etat-technique": jsonEquipement.etatTechnique, "data-etat-fonctionnel": jsonEquipement.etatFonctionnel});
 													var spanGlyphiconCheck = $("<span/>", {"class": "glyphicon glyphicon-check"});
@@ -225,7 +234,7 @@
 													$(li).append(divBtnGroup);
 													$(li).append(" " + jsonEquipement.id + " - " + jsonEquipement.nom);
 
-													$("ul_equipement").append(li);
+													$("#ul_equipement").append(li);
 												}
 											}
 											//removOld
@@ -348,6 +357,32 @@
 										error: function (err) {
 											console.log(err);
 										}
+									});
+								} else if (operation === "delete") {
+									$("#myModalBody").text("Voulez-vous vraiment supprimer cet équipement ?");
+									$(modal).find(".btn.btn-primary").click(function () {
+										$("#myModal").modal('hide');
+										$.ajax({
+											url: "<?php echo $url . 'api/equipement/'; ?>" + equipementId,
+											type: "DELETE",
+											success: function (json) {
+												console.log(json);
+												if (json.state === "ko") {
+													alert(json.error);
+												} else {
+													var alert = $("<div/>", {"class": "alert alert-success", "role": "alert"}).text("L'équipement a bien été supprimé.");
+													$("#flash").append(alert);
+													setTimeout(function() {
+														$(alert).hide('slow', function() {
+															$(this).remove();
+														});
+													}, 5000);
+												}
+											},
+											error: function (err) {
+												console.log(err);
+											}
+										});
 									});
 								}
 							});
@@ -593,16 +628,13 @@
 									type: "GET",
 									//data: $this.serialize(),
 									success: function (json) {
-										console.log(json);
 										if (json.state === "ko") {
 											alert(json.error);
 										} else {
-											console.log(json.content);
 											var ul = $("<ul/>", {"id": "ul_changement_etat", "class": "list-group"});
 											var jsonChangementEtatList = json.content;
 											for (var i = 0; i < jsonChangementEtatList.length; ++i) {
 												var jsonChangementEtat = jsonChangementEtatList[i];
-												console.log(jsonChangementEtat);
 												var li = $("<li/>", {"class": "list-group-item", "data-changement-etat-id": jsonChangementEtat.id});
 												
 												var btnRead = $("<a/>", {"href": "#", "data-equipement-id": jsonChangementEtat.equipement, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"}).text(jsonChangementEtat.equipement);
@@ -643,6 +675,7 @@
 							initChangementEtatList();
 							initSSE();
 							initSSEChangementEtat();
+							console.log(window);
 						});
 		</script>
 	</body>
