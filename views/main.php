@@ -35,9 +35,12 @@
 			<div class="row">
 				<div class="col-md-3">
 					<div>
-						<button id="add_equipement" type="button" class="btn btn-primary btn-lg" data-operation="add" data-toggle="modal" data-target="#myModal" data-size="large">
+						<!--button id="add_equipement" type="button" class="btn btn-primary btn-lg" data-operation="add" data-toggle="modal" data-target="#myModal" data-size="large">
 							<span class="glyphicon glyphicon-plus-sign"></span> Ajouter un équipement
-						</button>
+						</button-->
+						<a class="btn btn-primary btn-lg" data-operation="add" data-toggle="modal" data-target="#myModal" data-size="large">
+							<span class="glyphicon glyphicon-plus-sign"></span> Ajouter un équipement
+						</a>
 					</div>
 					<hr />
 					<div id="equipement_list" class="panel panel-default">
@@ -55,7 +58,9 @@
 						</ul>
 					</div>
 				</div>
-				<div id="main" class="col-md-6">
+				<div class="col-md-6">
+					<div id="flash"></div>
+				<div id="main">
 					<!--<object data="test.svg" width="100%" height="100%" type="image/svg+xml">
 						<embed src="test.svg" width="500" height="500" type="image/svg+xml" />
 					</object>-->
@@ -68,6 +73,7 @@
 					<line x1="200" y1="40" x2="200" y2="200" style="stroke:#000000;" data-from="C-RG5TB7H8" data-to="C-G5TRI6GH" />
 					<line x1="40" y1="200" x2="200" y2="200" style="stroke:#000000;" data-from="C-SR65G453" data-to="C-G5TRI6GH" />
 					</svg>
+				</div>
 				</div>
 				<div class="col-md-3">
 					
@@ -287,12 +293,14 @@
 							});
 							$('#myModal').on('show.bs.modal', function (event) {
 								var button = $(event.relatedTarget);
+								console.log(button)
 								var equipementId = button.data('equipement-id') !== "undefined" ? button.data('equipement-id') : null;
 								var operation = button.data('operation');
 								var size = button.data('size');
 
 								var modal = $(this);
 								setSizeModal(modal, size);
+								
 								if (operation === "read") {
 									$.ajax({
 										url: "<?php echo $url . 'api/equipement/'; ?>" + equipementId,
@@ -596,10 +604,31 @@
 												var jsonChangementEtat = jsonChangementEtatList[i];
 												console.log(jsonChangementEtat);
 												var li = $("<li/>", {"class": "list-group-item", "data-changement-etat-id": jsonChangementEtat.id});
-												var spanGlyphiconCheck = $("<span/>", {"class": "glyphicon glyphicon-check"});
-												var btnRead = $("<button/>", {"type": "button", "class": "btn btn-info btn-xs", "data-changement-etat-equipement": jsonChangementEtat.equipement, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"});
-
-												$(li).append(jsonChangementEtat.date);
+												
+												var btnRead = $("<a/>", {"href": "#", "data-equipement-id": jsonChangementEtat.equipement, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"}).text(jsonChangementEtat.equipement);
+												
+												var dateChangementEtat = new Date(jsonChangementEtat.date);
+												var formatedDateChangementEtat = (dateChangementEtat.getDate()<10 ? "0"+dateChangementEtat.getDate():dateChangementEtat.getDate())
+												+"/"+(dateChangementEtat.getMonth()<10 ? "0"+dateChangementEtat.getMonth():dateChangementEtat.getMonth())
+												+" à "+(dateChangementEtat.getHours()<10 ? "0"+dateChangementEtat.getHours():dateChangementEtat.getHours())
+												+"H"+(dateChangementEtat.getMinutes()<10 ? "0"+dateChangementEtat.getMinutes():dateChangementEtat.getMinutes());
+												
+												var text = "";
+												if (jsonChangementEtat.type === "1") {// ajout
+													text = "Ajout de l'équipement ";
+												} else if (jsonChangementEtat.type === "2") {// Modif Propriétés
+													text = "Modification des propriétés de l'équipement ";
+												} else if (jsonChangementEtat.type === "3") {// Modif etat fonctionnel (Marche/Arrêt)
+													text = "Modification des propriétés de l'équipement ";
+												} else if (jsonChangementEtat.type === "4") {// Modif etat technique (Panne)
+													text = "Modification de l'état technique de l'équipement ";
+												} else {
+													alert("Type de changement non pris en compte : "+jsonChangementEtat.type)
+												}
+												
+												$(li).append(text);
+												$(li).append(btnRead);
+												$(li).append(" le " + formatedDateChangementEtat);
 
 												$(ul).append(li);
 											}
