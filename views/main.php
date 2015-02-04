@@ -50,8 +50,9 @@
 					</div>
 					<div class="well">
 						<ul class="list-unstyled">
-							<li>Consulter la fiche d'un équipement</li>
-							<li>Supprimer un équipement</li>
+							<li>Valider les formulaires</li>
+							<li>Trouver le bug du formulaire</li>
+							<li>Essayer d'améliorer le scroll de la liste</li>
 							<li>Essayer d'améliorer le scroll de la liste</li>
 							<li>Finir le journal</li>
 							<li>Finir le svg</li>

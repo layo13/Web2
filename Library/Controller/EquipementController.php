@@ -17,8 +17,8 @@ class EquipementController {
 		$jsonEquipement = array(
 			'id' => $equipement->getId(),
 			'pere' => $equipement->getPere() !== null ? array(
-					'id' => $equipement->getId(),
-					'nom' => $equipement->getNom()
+					'id' => $equipement->getPere()->getId(),
+					'nom' => $equipement->getPere()->getNom()
 				) : null,
 			'etatTechnique' => array(
 				'id' => $equipement->getEtatTechnique()->getId(),
