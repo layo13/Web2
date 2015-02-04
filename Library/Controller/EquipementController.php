@@ -10,17 +10,32 @@ class EquipementController {
 
 	public function readUnique($id) {
 		header('Content-Type: application/json');
-		
+
 		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 		$equipement = $equipementManager->getUnique($id);
 
 		$jsonEquipement = array(
 			'id' => $equipement->getId(),
-			'pere' => $equipement->getPere(),
-			'etatTechnique' => $equipement->getEtatTechnique(),
-			'etatFonctionnel' => $equipement->getEtatFonctionnel(),
-			'fabricant' => $equipement->getFabricant(),
-			'type' => $equipement->getType(),
+			'pere' => $equipement->getPere() !== null ? array(
+					'id' => $equipement->getId(),
+					'nom' => $equipement->getNom()
+				) : null,
+			'etatTechnique' => array(
+				'id' => $equipement->getEtatTechnique()->getId(),
+				'libelle' => $equipement->getEtatTechnique()->getLibelle(),
+			),
+			'etatFonctionnel' => array(
+				'id' => $equipement->getEtatFonctionnel()->getId(),
+				'libelle' => $equipement->getEtatFonctionnel()->getLibelle(),
+			),
+			'fabricant' => array(
+				'id' => $equipement->getFabricant()->getId(),
+				'nom' => $equipement->getFabricant()->getNom(),
+			),
+			'type' => array(
+				'id' => $equipement->getType()->getId(),
+				'libelle' => $equipement->getType()->getLibelle(),
+			),
 			'nom' => $equipement->getNom(),
 			'adresseIp' => $equipement->getAdresseIp(),
 			'adressePhysique' => $equipement->getAdressePhysique(),
@@ -45,11 +60,26 @@ class EquipementController {
 		foreach ($equipementList as $equipement) {
 			$jsonEquipementList[] = array(
 				'id' => $equipement->getId(),
-				'pere' => $equipement->getPere(),
-				'etatTechnique' => $equipement->getEtatTechnique(),
-				'etatFonctionnel' => $equipement->getEtatFonctionnel(),
-				'fabricant' => $equipement->getFabricant(),
-				'type' => $equipement->getType(),
+				'pere' => $equipement->getPere() !== null ? array(
+					'id' => $equipement->getId(),
+					'nom' => $equipement->getNom()
+				) : null,
+				'etatTechnique' => array(
+					'id' => $equipement->getEtatTechnique()->getId(),
+					'libelle' => $equipement->getEtatTechnique()->getLibelle(),
+				),
+				'etatFonctionnel' => array(
+					'id' => $equipement->getEtatFonctionnel()->getId(),
+					'libelle' => $equipement->getEtatFonctionnel()->getLibelle(),
+				),
+				'fabricant' => array(
+					'id' => $equipement->getFabricant()->getId(),
+					'nom' => $equipement->getFabricant()->getNom(),
+				),
+				'type' => array(
+					'id' => $equipement->getType()->getId(),
+					'libelle' => $equipement->getType()->getLibelle(),
+				),
 				'nom' => $equipement->getNom(),
 				'adresseIp' => $equipement->getAdresseIp(),
 				'adressePhysique' => $equipement->getAdressePhysique(),
@@ -108,7 +138,7 @@ class EquipementController {
 
 		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 		$equipement = $equipementManager->getUnique($oldId);
-		
+
 		$id = $_POST['id'];
 		$type = $_POST['type'];
 		$fabricant = $_POST['fabricant'];
@@ -123,7 +153,7 @@ class EquipementController {
 		$equipement->setOldId($oldId);
 		$equipement->setType($type);
 		$equipement->setFabricant($fabricant);
-		
+
 		if ($pere !== "") {
 			$equipement->setPere($pere);
 		}
@@ -143,7 +173,7 @@ class EquipementController {
 
 	public function delete($id) {
 		header('Content-Type: application/json');
-		
+
 		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 		if ($equipementManager->delete($id)) {
 			$jsonResponse["state"] = "ok";

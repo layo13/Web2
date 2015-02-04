@@ -3,6 +3,10 @@
 namespace Library\Model;
 
 use Library\Entity\Equipement;
+use Library\Model\EtatFonctionnelManager;
+use Library\Model\EtatTechniqueManager;
+use Library\Model\FabricantManager;
+use Library\Model\TypeEquipementManager;
 
 class EquipementManager {
 
@@ -17,13 +21,19 @@ class EquipementManager {
 		$requete->bindValue(":id", $id);
 		$requete->execute();
 		if ($row = $requete->fetch()) {
+			
+			$etatFonctionnelManager = new EtatFonctionnelManager($this->pdo);
+			$etatTechniqueManager = new EtatTechniqueManager($this->pdo);
+			$fabricantManager = new FabricantManager($this->pdo);
+			$typeEquipementManager = new TypeEquipementManager($this->pdo);
+			
 			$equipement = new Equipement();
 			$equipement->setId($row['id']);
-			$equipement->setPere($row['pere']);
-			$equipement->setEtatTechnique($row['etat_technique']);
-			$equipement->setEtatFonctionnel($row['etat_fonctionnel']);
-			$equipement->setFabricant($row['fabricant']);
-			$equipement->setType($row['type']);
+			$equipement->setPere($this->getUnique($row['pere']));
+			$equipement->setEtatTechnique($etatTechniqueManager->getUnique($row['etat_technique']));
+			$equipement->setEtatFonctionnel($etatFonctionnelManager->getUnique($row['etat_fonctionnel']));
+			$equipement->setFabricant($fabricantManager->getUnique($row['fabricant']));
+			$equipement->setType($typeEquipementManager->getUnique($row['type']));
 			$equipement->setNom($row['nom']);
 			$equipement->setAdresseIp($row['adresse_ip']);
 			$equipement->setAdressePhysique($row['adresse_physique']);
@@ -39,15 +49,19 @@ class EquipementManager {
 	public function get() {
 		$requete = $this->pdo->query("SELECT * FROM equipement");
 		$equipementList = array();
+		$etatFonctionnelManager = new EtatFonctionnelManager($this->pdo);
+		$etatTechniqueManager = new EtatTechniqueManager($this->pdo);
+		$fabricantManager = new FabricantManager($this->pdo);
+		$typeEquipementManager = new TypeEquipementManager($this->pdo);
 		foreach ($requete->fetchAll() as $row) {
 			
 			$equipement = new Equipement();
 			$equipement->setId($row['id']);
-			$equipement->setPere($row['pere']);
-			$equipement->setEtatTechnique($row['etat_technique']);
-			$equipement->setEtatFonctionnel($row['etat_fonctionnel']);
-			$equipement->setFabricant($row['fabricant']);
-			$equipement->setType($row['type']);
+			$equipement->setPere($this->getUnique($row['pere']));
+			$equipement->setEtatTechnique($etatTechniqueManager->getUnique($row['etat_technique']));
+			$equipement->setEtatFonctionnel($etatFonctionnelManager->getUnique($row['etat_fonctionnel']));
+			$equipement->setFabricant($fabricantManager->getUnique($row['fabricant']));
+			$equipement->setType($typeEquipementManager->getUnique($row['type']));
 			$equipement->setNom($row['nom']);
 			$equipement->setAdresseIp($row['adresse_ip']);
 			$equipement->setAdressePhysique($row['adresse_physique']);

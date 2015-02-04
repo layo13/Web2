@@ -26,22 +26,41 @@ class Equipement {
 		return $this->oldId;
 	}
 
+	/**
+	 * 
+	 * @return Equipement
+	 */
 	function getPere() {
 		return $this->pere;
 	}
 
+	/**
+	 * 
+	 * @return EtatTechnique
+	 */
 	function getEtatTechnique() {
 		return $this->etatTechnique;
 	}
 
+	/**
+	 * 
+	 * @return EtatFonctionnel
+	 */
 	function getEtatFonctionnel() {
 		return $this->etatFonctionnel;
 	}
-
+	/**
+	 * 
+	 * @return Fabricant
+	 */
 	function getFabricant() {
 		return $this->fabricant;
 	}
 
+	/**
+	 * 
+	 * @return TypeEquipement
+	 */
 	function getType() {
 		return $this->type;
 	}

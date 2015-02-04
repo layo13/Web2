@@ -117,566 +117,708 @@
 		<script src="<?php echo $url; ?>js/jquery.min.js"></script>
 		<script src="<?php echo $url; ?>js/bootstrap.min.js"></script>
 		<script>
-						// Gestion du svg
-						var selectedElement = 0;
-						var currentX = 0;
-						var currentY = 0;
-						var currentMatrix = 0;
+			// Gestion du svg
+			var selectedElement = 0;
+			var currentX = 0;
+			var currentY = 0;
+			var currentMatrix = 0;
 
-						function selectElement(evt) {
-							selectedElement = evt.target;
-							currentX = evt.clientX;
-							currentY = evt.clientY;
-							currentMatrix = selectedElement.getAttributeNS(null, "transform").slice(7, -1).split(' ');
+			function selectElement(evt) {
+				selectedElement = evt.target;
+				currentX = evt.clientX;
+				currentY = evt.clientY;
+				currentMatrix = selectedElement.getAttributeNS(null, "transform").slice(7, -1).split(' ');
 
-							for (var i = 0; i < currentMatrix.length; i++) {
-								currentMatrix[i] = parseFloat(currentMatrix[i]);
-							}
+				for (var i = 0; i < currentMatrix.length; i++) {
+					currentMatrix[i] = parseFloat(currentMatrix[i]);
+				}
 
-							selectedElement.setAttributeNS(null, "onmousemove", "moveElement(evt)");
-							selectedElement.setAttributeNS(null, "onmouseout", "deselectElement(evt)");
-							selectedElement.setAttributeNS(null, "onmouseup", "deselectElement(evt)");
+				selectedElement.setAttributeNS(null, "onmousemove", "moveElement(evt)");
+				selectedElement.setAttributeNS(null, "onmouseout", "deselectElement(evt)");
+				selectedElement.setAttributeNS(null, "onmouseup", "deselectElement(evt)");
 
-						}
+			}
 
-						function moveElement(evt) {
-							dx = evt.clientX - currentX;
-							dy = evt.clientY - currentY;
-							currentMatrix[4] += dx;
-							currentMatrix[5] += dy;
-							newMatrix = "matrix(" + currentMatrix.join(' ') + ")";
+			function moveElement(evt) {
+				dx = evt.clientX - currentX;
+				dy = evt.clientY - currentY;
+				currentMatrix[4] += dx;
+				currentMatrix[5] += dy;
+				newMatrix = "matrix(" + currentMatrix.join(' ') + ")";
 
-							// debut
-							var lines = document.getElementsByTagName("line");
-							for (var i = 0; i < lines.length; i++) {
-								var line = lines[i];
+				// debut
+				var lines = document.getElementsByTagName("line");
+				for (var i = 0; i < lines.length; i++) {
+					var line = lines[i];
 
-								if (line.dataset.from === selectedElement.id) {
-									var currentX1 = parseInt(line.getAttribute("x1")) + dx;
-									var currentY1 = parseInt(line.getAttribute("y1")) + dy;
-									line.setAttribute("x1", currentX1);
-									line.setAttribute("y1", currentY1);
+					if (line.dataset.from === selectedElement.id) {
+						var currentX1 = parseInt(line.getAttribute("x1")) + dx;
+						var currentY1 = parseInt(line.getAttribute("y1")) + dy;
+						line.setAttribute("x1", currentX1);
+						line.setAttribute("y1", currentY1);
 
-								}
-								if (line.dataset.to === selectedElement.id) {
-									var currentX2 = parseInt(line.getAttribute("x2")) + dx;
-									var currentY2 = parseInt(line.getAttribute("y2")) + dy;
-									line.setAttribute("x2", currentX2);
-									line.setAttribute("y2", currentY2);
-								}
-							}
-							// fin
+					}
+					if (line.dataset.to === selectedElement.id) {
+						var currentX2 = parseInt(line.getAttribute("x2")) + dx;
+						var currentY2 = parseInt(line.getAttribute("y2")) + dy;
+						line.setAttribute("x2", currentX2);
+						line.setAttribute("y2", currentY2);
+					}
+				}
+				// fin
 
-							selectedElement.setAttributeNS(null, "transform", newMatrix);
-							currentX = evt.clientX;
-							currentY = evt.clientY;
-						}
+				selectedElement.setAttributeNS(null, "transform", newMatrix);
+				currentX = evt.clientX;
+				currentY = evt.clientY;
+			}
 
-						function deselectElement(evt) {
-							if (selectedElement !== 0) {
-								selectedElement.removeAttributeNS(null, "onmousemove");
-								selectedElement.removeAttributeNS(null, "onmouseout");
-								selectedElement.removeAttributeNS(null, "onmouseup");
-								selectedElement = 0;
-							}
-						}
-						
-						/*(function(i){
-							alert(i);
-						})(2);*/
+			function deselectElement(evt) {
+				if (selectedElement !== 0) {
+					selectedElement.removeAttributeNS(null, "onmousemove");
+					selectedElement.removeAttributeNS(null, "onmouseout");
+					selectedElement.removeAttributeNS(null, "onmouseup");
+					selectedElement = 0;
+				}
+			}
 
-						$(function () {
-							$('#example').popover();
-							
-							$('#link_simulator').click(function(event) {
-								event.preventDefault();
-								window.open("<?php echo $url . "simulator"; ?>");
-							});
-							
-							function initSSE() {
-								if (typeof (EventSource) !== "undefined") {
-									var source = new EventSource("<?php echo $url . "sse/equipement"; ?>");
-									source.onmessage = function (event) {
-										var json = JSON.parse(event.data);
-										
-										if (json.state === "ok") {
-											var jsonEquipementList = json.content;
+			/*(function(i){
+				alert(i);
+			})(2);*/
 
-											//addNew
-											for (var i = 0; i < jsonEquipementList.length; i++) {
-												var found = false;
-												var jsonEquipement = jsonEquipementList[i];
+			$(function () {
+				$('#example').popover();
 
-												for (var j = 0; j < $("li[data-equipement-id]").length; j++) {
-													var liEquipement = $("li[data-equipement-id]")[j];
-													if (jsonEquipement.id === $(liEquipement).attr("data-equipement-id")) {
-														found = true;
-														break;
-													}
-												}
+				$('#link_simulator').click(function(event) {
+					event.preventDefault();
+					window.open("<?php echo $url . "simulator"; ?>");
+				});
 
-												if (found === false) {
-													var li = $("<li/>", {"class": "list-group-item", "data-equipement-id": jsonEquipement.id, "data-etat-technique": jsonEquipement.etatTechnique, "data-etat-fonctionnel": jsonEquipement.etatFonctionnel});
-													var spanGlyphiconCheck = $("<span/>", {"class": "glyphicon glyphicon-check"});
-													var btnRead = $("<button/>", {"type": "button", "class": "btn btn-info btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"});
-													var spanGlyphiconEdit = $("<span/>", {"class": "glyphicon glyphicon-edit"});
-													var btnUpdate = $("<button/>", {"type": "button", "class": "btn btn-warning btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "update", "data-toggle": "modal", "data-target": "#myModal", "data-size": "large"});
-													var spanGlyphiconTrash = $("<span/>", {"class": "glyphicon glyphicon-trash"});
-													var btnDelete = $("<button/>", {"type": "button", "class": "btn btn-danger btn-xs btn-delete", "data-equipement-id": jsonEquipement.id, "data-operation": "delete", "data-toggle": "modal", "data-target": "#myModal", "data-size": "small"});
-													var divBtnGroup = $("<div/>", {"class": "btn-group pull-right", "role": "group", "aria-label": "Opération"});
-													$(btnRead).append(spanGlyphiconCheck);
-													$(divBtnGroup).append(btnRead);
-													$(btnUpdate).append(spanGlyphiconEdit);
-													$(divBtnGroup).append(btnUpdate);
-													$(btnDelete).append(spanGlyphiconTrash);
-													$(divBtnGroup).append(btnDelete);
+				function initSSE() {
+					if (typeof (EventSource) !== "undefined") {
+						var source = new EventSource("<?php echo $url . "sse/equipement"; ?>");
+						source.onmessage = function (event) {
+							var json = JSON.parse(event.data);
 
-													$(li).append(divBtnGroup);
-													$(li).append(" " + jsonEquipement.id + " - " + jsonEquipement.nom);
+							if (json.state === "ok") {
+								var jsonEquipementList = json.content;
 
-													$("#ul_equipement").append(li);
-												}
-											}
-											//removOld
-											for (var i = 0; i < $("li[data-equipement-id]").length; i++) {
-												found = false;
-												var liEquipement = $("li[data-equipement-id]")[i];
-												for (var i = 0; i < jsonEquipementList.length; i++) {
-													var jsonEquipement = jsonEquipementList[i];
-													if (jsonEquipement.id === $(liEquipement).attr("data-equipement-id")) {
-														found = true;
-														break;
-													}
-												}
-												if (found === false) {
-													$(liEquipement).remove();
-												}
-											}
+								//addNew
+								for (var i = 0; i < jsonEquipementList.length; i++) {
+									var found = false;
+									var jsonEquipement = jsonEquipementList[i];
+
+									for (var j = 0; j < $("li[data-equipement-id]").length; j++) {
+										var liEquipement = $("li[data-equipement-id]")[j];
+										if (jsonEquipement.id === $(liEquipement).attr("data-equipement-id")) {
+											found = true;
+											break;
 										}
-									};
+									}
+
+									if (found === false) {
+										var li = $("<li/>", {"class": "list-group-item", "data-equipement-id": jsonEquipement.id, "data-etat-technique": jsonEquipement.etatTechnique, "data-etat-fonctionnel": jsonEquipement.etatFonctionnel});
+										var spanGlyphiconCheck = $("<span/>", {"class": "glyphicon glyphicon-check"});
+										var btnRead = $("<button/>", {"type": "button", "class": "btn btn-info btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"});
+										var spanGlyphiconEdit = $("<span/>", {"class": "glyphicon glyphicon-edit"});
+										var btnUpdate = $("<button/>", {"type": "button", "class": "btn btn-warning btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "update", "data-toggle": "modal", "data-target": "#myModal", "data-size": "large"});
+										var spanGlyphiconTrash = $("<span/>", {"class": "glyphicon glyphicon-trash"});
+										var btnDelete = $("<button/>", {"type": "button", "class": "btn btn-danger btn-xs btn-delete", "data-equipement-id": jsonEquipement.id, "data-operation": "delete", "data-toggle": "modal", "data-target": "#myModal", "data-size": "small"});
+										var divBtnGroup = $("<div/>", {"class": "btn-group pull-right", "role": "group", "aria-label": "Opération"});
+										$(btnRead).append(spanGlyphiconCheck);
+										$(divBtnGroup).append(btnRead);
+										$(btnUpdate).append(spanGlyphiconEdit);
+										$(divBtnGroup).append(btnUpdate);
+										$(btnDelete).append(spanGlyphiconTrash);
+										$(divBtnGroup).append(btnDelete);
+
+										$(li).append(divBtnGroup);
+										$(li).append(" " + jsonEquipement.id + " - " + jsonEquipement.nom);
+
+										$("#ul_equipement").append(li);
+									}
+								}
+								//removOld
+								for (var i = 0; i < $("li[data-equipement-id]").length; i++) {
+									found = false;
+									var liEquipement = $("li[data-equipement-id]")[i];
+									for (var i = 0; i < jsonEquipementList.length; i++) {
+										var jsonEquipement = jsonEquipementList[i];
+										if (jsonEquipement.id === $(liEquipement).attr("data-equipement-id")) {
+											found = true;
+											break;
+										}
+									}
+									if (found === false) {
+										$(liEquipement).remove();
+									}
+								}
+							}
+						};
+					} else {
+						document.getElementById("main").innerHTML = "Sorry, your browser does not support server-sent events...";
+					}
+				}
+				function initSSEChangementEtat() {
+					if (typeof (EventSource) !== "undefined") {
+						var source = new EventSource("<?php echo $url . "sse/changement-etat"; ?>");
+						source.onmessage = function (event) {
+							var json = JSON.parse(event.data);
+							if (json.state === "ok") {
+								var jsonChangementEtatList = json.content;
+								//addNew
+								for (var i = 0; i < jsonChangementEtatList.length; i++) {
+									var found = false;
+									var jsonChangementEtat = jsonChangementEtatList[i];
+									for (var j = 0; j < $("li[data-changement-etat-id]").length; j++) {
+										var liChangementEtat = $("li[data-changement-etat-id]")[j];
+
+										if (jsonChangementEtat.id === $(liChangementEtat).attr("data-changement-etat-id")) {
+											found = true;
+											break;
+										}
+									}
+									if (found === false) {
+
+										var li = $("<li/>", {"class": "list-group-item", "data-changement-etat-id": jsonChangementEtat.id});
+
+										$(li).append(jsonChangementEtat.date);
+										console.log(new Date(jsonChangementEtat.date));
+
+										$("#ul_changement_etat").append(li);
+									}
+								}
+							}
+						};
+					} else {
+						document.getElementById("main").innerHTML = "Sorry, your browser does not support server-sent events...";
+					}
+				}
+
+				/*
+				 * GESTION DU MODAL
+				 */
+				$('#myModal').on('hidden.bs.modal', function (event) {
+					$("#myModalBody").empty();
+				});
+				$('#myModal').on('show.bs.modal', function (event) {
+					var button = $(event.relatedTarget);
+					console.log(button)
+					var equipementId = button.data('equipement-id') !== "undefined" ? button.data('equipement-id') : null;
+					var operation = button.data('operation');
+					var size = button.data('size');
+
+					var modal = $(this);
+					setSizeModal(modal, size);
+
+					if (operation === "read") {
+						$.ajax({
+							url: "<?php echo $url . 'api/equipement/'; ?>" + equipementId,
+							type: "GET",
+							success: function (json) {
+								console.log(json);
+								if (json.state === "ko") {
+									alert(json.error);
 								} else {
-									document.getElementById("main").innerHTML = "Sorry, your browser does not support server-sent events...";
-								}
-							}
-							function initSSEChangementEtat() {
-								if (typeof (EventSource) !== "undefined") {
-									var source = new EventSource("<?php echo $url . "sse/changement-etat"; ?>");
-									source.onmessage = function (event) {
-										var json = JSON.parse(event.data);
-										if (json.state === "ok") {
-											var jsonChangementEtatList = json.content;
-											//addNew
-											for (var i = 0; i < jsonChangementEtatList.length; i++) {
-												var found = false;
-												var jsonChangementEtat = jsonChangementEtatList[i];
-												for (var j = 0; j < $("li[data-changement-etat-id]").length; j++) {
-													var liChangementEtat = $("li[data-changement-etat-id]")[j];
-													
-													if (jsonChangementEtat.id === $(liChangementEtat).attr("data-changement-etat-id")) {
-														found = true;
-														break;
-													}
-												}
-												if (found === false) {
-													
-													var li = $("<li/>", {"class": "list-group-item", "data-changement-etat-id": jsonChangementEtat.id});
-													
-													$(li).append(jsonChangementEtat.date);
-													console.log(new Date(jsonChangementEtat.date));
-													
-													$("#ul_changement_etat").append(li);
-												}
-											}
-										}
-									};
-								} else {
-									document.getElementById("main").innerHTML = "Sorry, your browser does not support server-sent events...";
-								}
-							}
+									var jsonEquipement = json.content;
+									
+									// ID ET NOM
+									var ligne1 = $("<div/>", {"class":"row"});
+									
+									var divId = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderId = $("<div/>", {"class":"page-header"});
+									var h4Id = $("<h4/>").text("Identifiant");
+									
+									var divNom = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderNom = $("<div/>", {"class":"page-header"});
+									var h4Nom = $("<h4/>").text("Nom");
+									
+									// PERE ET UTILISATEUR
+									var ligne2 = $("<div/>", {"class":"row"});
+									
+									var divPere = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderPere = $("<div/>", {"class":"page-header"});
+									var h4Pere = $("<h4/>").text("Père");
+									
+									var divUtilisateur = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderUtilisateur = $("<div/>", {"class":"page-header"});
+									var h4Utilisateur = $("<h4/>").text("Utilisateur");
+									
+									// ETATTECHNIQUE ET ETATFONCTIONNEL
+									var ligne3 = $("<div/>", {"class":"row"});
 
-							/*
-							 * GESTION DU MODAL
-							 */
-							$('#myModal').on('hidden.bs.modal', function (event) {
-								$("#myModalBody").empty();
-							});
-							$('#myModal').on('show.bs.modal', function (event) {
-								var button = $(event.relatedTarget);
-								console.log(button)
-								var equipementId = button.data('equipement-id') !== "undefined" ? button.data('equipement-id') : null;
-								var operation = button.data('operation');
-								var size = button.data('size');
+									var divEtatTechnique = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderEtatTechnique = $("<div/>", {"class":"page-header"});
+									var h4EtatTechnique = $("<h4/>").text("Etat Technique");
 
-								var modal = $(this);
-								setSizeModal(modal, size);
-								
-								if (operation === "read") {
-									$.ajax({
-										url: "<?php echo $url . 'api/equipement/'; ?>" + equipementId,
-										type: "GET",
-										success: function (json) {
-											console.log(json);
-											if (json.state === "ko") {
-												alert(json.error);
-											} else {
-												var jsonEquipement = json.content;
-												var pre = $("<pre/>").html(JSON.stringify(jsonEquipement))
-												$("#myModalBody").append(pre);
-												$(modal).find(".btn.btn-primary").click(function () {
-													$("#myModal").modal('hide');
-												});
-											}
-										},
-										error: function (err) {
-											console.log(err);
-										}
+									var divEtatFonctionnel = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderEtatFonctionnel = $("<div/>", {"class":"page-header"});
+									var h4EtatFonctionnel = $("<h4/>").text("Etat Fonctionnel");
+									
+									// FABRICANT ET TYPE
+									var ligne4 = $("<div/>", {"class":"row"});
+
+									var divType = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderType = $("<div/>", {"class":"page-header"});
+									var h4Type = $("<h4/>").text("Type");
+
+									var divFabricant = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderFabricant = $("<div/>", {"class":"page-header"});
+									var h4Fabricant = $("<h4/>").text("Fabricant");
+									
+									// ADRESSEIP ET ADRESSEPHYSIQUE
+									var ligne5 = $("<div/>", {"class":"row"});
+
+									var divAdresseIp = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderAdresseIp = $("<div/>", {"class":"page-header"});
+									var h4AdresseIp = $("<h4/>").text("Adresse Ip");
+
+									var divAdressePhysique = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderAdressePhysique = $("<div/>", {"class":"page-header"});
+									var h4AdressePhysique = $("<h4/>").text("Adresse Physique");
+
+									// MESSAGEMAINTENANCE ET NUMEROSUPPORT
+									var ligne6 = $("<div/>", {"class":"row"});
+
+									var divMessageMaintenance = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderMessageMaintenance = $("<div/>", {"class":"page-header"});
+									var h4MessageMaintenance = $("<h4/>").text("Message Maintenance");
+
+									var divNumeroSupport = $("<div/>", {"class":"col-md-6"});
+									var pageHeaderNumeroSupport = $("<div/>", {"class":"page-header"});
+									var h4NumeroSupport = $("<h4/>").text("Numéro Support");
+									
+									// ID ET NOM
+									$(pageHeaderId).append(h4Id);
+									$(divId).append(pageHeaderId);
+									$(divId).append(jsonEquipement.id);
+									$(ligne1).append(divId);
+									
+									$(pageHeaderNom).append(h4Nom);
+									$(divNom).append(pageHeaderNom);
+									$(divNom).append(jsonEquipement.nom);
+									$(ligne1).append(divNom);
+									
+									// PERE ET UTILISATEUR
+									$(pageHeaderPere).append(h4Pere);
+									$(divPere).append(pageHeaderPere);
+									if (jsonEquipement.pere !== null) {
+										$(divPere).append(jsonEquipement.pere.nom);
+									} else {
+										$(divPere).append("Cet équipement ne dépend d'aucun autre.");
+									}
+									$(ligne2).append(divPere);
+									
+									$(pageHeaderUtilisateur).append(h4Utilisateur);
+									$(divUtilisateur).append(pageHeaderUtilisateur);
+									$(divUtilisateur).append(jsonEquipement.utilisateur);
+									$(ligne2).append(divUtilisateur);
+									
+									// ETATTECHNIQUE ET ETATFONCTIONNEL
+									$(pageHeaderEtatTechnique).append(h4EtatTechnique);
+									$(divEtatTechnique).append(pageHeaderEtatTechnique);
+									$(divEtatTechnique).append(jsonEquipement.etatTechnique.libelle);
+									$(ligne3).append(divEtatTechnique);
+
+									$(pageHeaderEtatFonctionnel).append(h4EtatFonctionnel);
+									$(divEtatFonctionnel).append(pageHeaderEtatFonctionnel);
+									$(divEtatFonctionnel).append(jsonEquipement.etatFonctionnel.libelle);
+									$(ligne3).append(divEtatFonctionnel);
+									
+									// FABRICANT ET TYPE
+									$(pageHeaderType).append(h4Type);
+									$(divType).append(pageHeaderType);
+									$(divType).append(jsonEquipement.type.libelle);
+									$(ligne4).append(divType);
+
+									$(pageHeaderFabricant).append(h4Fabricant);
+									$(divFabricant).append(pageHeaderFabricant);
+									$(divFabricant).append(jsonEquipement.fabricant.nom);
+									$(ligne4).append(divFabricant);
+									
+									// ADRESSEIP ET ADRESSEPHYSIQUE
+									$(pageHeaderAdresseIp).append(h4AdresseIp);
+									$(divAdresseIp).append(pageHeaderAdresseIp);
+									$(divAdresseIp).append(jsonEquipement.adresseIp);
+									$(ligne5).append(divAdresseIp);
+
+									$(pageHeaderAdressePhysique).append(h4AdressePhysique);
+									$(divAdressePhysique).append(pageHeaderAdressePhysique);
+									$(divAdressePhysique).append(jsonEquipement.AdressePhysique);
+									$(ligne5).append(divAdressePhysique);
+
+									// MESSAGEMAINTENANCE ET NUMEROSUPPORT
+									$(pageHeaderMessageMaintenance).append(h4MessageMaintenance);
+									$(divMessageMaintenance).append(pageHeaderMessageMaintenance);
+									$(divMessageMaintenance).append(jsonEquipement.messageMaintenance);
+									$(ligne6).append(divMessageMaintenance);
+
+									$(pageHeaderNumeroSupport).append(h4NumeroSupport);
+									$(divNumeroSupport).append(pageHeaderNumeroSupport);
+									$(divNumeroSupport).append(jsonEquipement.numeroSupport);
+									$(ligne6).append(divNumeroSupport);
+									
+									$("#myModalBody").append(ligne1);
+									$("#myModalBody").append(ligne2);
+									$("#myModalBody").append(ligne3);
+									$("#myModalBody").append(ligne4);
+									$("#myModalBody").append(ligne5);
+									$("#myModalBody").append(ligne6);
+									
+									$(modal).find(".btn.btn-primary").click(function () {
+										$("#myModal").modal('hide');
 									});
-								} else if (operation === "add") {
-									var form = getEquipementForm({});
+								}
+							},
+							error: function (err) {
+								console.log(err);
+							}
+						});
+					} else if (operation === "add") {
+						var form = getEquipementForm({});
+						$("#myModalBody").append(form);
+						$(modal).find(".btn.btn-primary").click(function () {
+							$(form).submit();
+						});
+					} else if (operation === "update") {
+						$.ajax({
+							url: "<?php echo $url . 'api/equipement/'; ?>" + equipementId,
+							type: "GET",
+							success: function (json) {
+								console.log(json);
+								if (json.state === "ko") {
+									alert(json.error);
+								} else {
+									var jsonEquipement = json.content;
+									var form = getEquipementForm(jsonEquipement);
 									$("#myModalBody").append(form);
 									$(modal).find(".btn.btn-primary").click(function () {
 										$(form).submit();
 									});
-								} else if (operation === "update") {
-									$.ajax({
-										url: "<?php echo $url . 'api/equipement/'; ?>" + equipementId,
-										type: "GET",
-										success: function (json) {
-											console.log(json);
-											if (json.state === "ko") {
-												alert(json.error);
-											} else {
-												var jsonEquipement = json.content;
-												var form = getEquipementForm(jsonEquipement);
-												$("#myModalBody").append(form);
-												$(modal).find(".btn.btn-primary").click(function () {
-													$(form).submit();
-												});
-											}
-										},
-										error: function (err) {
-											console.log(err);
-										}
-									});
-								} else if (operation === "delete") {
-									$("#myModalBody").text("Voulez-vous vraiment supprimer cet équipement ?");
-									$(modal).find(".btn.btn-primary").click(function () {
-										$("#myModal").modal('hide');
-										$.ajax({
-											url: "<?php echo $url . 'api/equipement/'; ?>" + equipementId,
-											type: "DELETE",
-											success: function (json) {
-												console.log(json);
-												if (json.state === "ko") {
-													alert(json.error);
-												} else {
-													var alert = $("<div/>", {"class": "alert alert-success", "role": "alert"}).text("L'équipement a bien été supprimé.");
-													$("#flash").append(alert);
-													setTimeout(function() {
-														$(alert).hide('slow', function() {
-															$(this).remove();
-														});
-													}, 5000);
-												}
-											},
-											error: function (err) {
-												console.log(err);
-											}
-										});
-									});
+								}
+							},
+							error: function (err) {
+								console.log(err);
+							}
+						});
+					} else if (operation === "delete") {
+						$("#myModalBody").text("Voulez-vous vraiment supprimer cet équipement ?");
+						$(modal).find(".btn.btn-primary").click(function () {
+							$("#myModal").modal('hide');
+							$.ajax({
+								url: "<?php echo $url . 'api/equipement/'; ?>" + equipementId,
+								type: "DELETE",
+								success: function (json) {
+									console.log(json);
+									if (json.state === "ko") {
+										alert(json.error);
+									} else {
+										var alert = $("<div/>", {"class": "alert alert-success", "role": "alert"}).text("L'équipement a bien été supprimé.");
+										$("#flash").append(alert);
+										setTimeout(function() {
+											$(alert).hide('slow', function() {
+												$(this).remove();
+											});
+										}, 5000);
+									}
+								},
+								error: function (err) {
+									console.log(err);
 								}
 							});
-
-							function getEquipementForm(options) {
-								var defaults = {
-									"id": null,
-									"pere": null,
-									"fabricant": "0",
-									"type": "0",
-									"nom": null,
-									"adresseIp": null,
-									"adressePhysique": null,
-									"numeroSupport": null,
-									"utilisateur": null
-								};
-
-								var parameters = $.extend(defaults, options);
-
-								var labelId = $("<label/>", {"class": "control-label", "for": "id"}).text("Identifiant");
-								var inputId = $("<input/>", {"class": "form-control", "type": "text", "id": "id", "name": "id", "value": parameters.id});
-								var divFormGroupId = $("<div/>", {"class": "form-group"});
-
-								var labelType = $("<label/>", {"class": "control-label", "for": "type"}).text("Type");
-								var selectType = $("<select/>", {"class": "form-control", "id": "type", "name": "type"});
-								var divFormGroupType = $("<div/>", {"class": "form-group"});
-								$.ajax({
-									url: "<?php echo $url . 'api/type_equipement'; ?>",
-									type: "GET",
-									success: function (json) {
-										console.log(json);
-										if (json.state === "ko") {
-											alert(json.error);
-										} else {
-											var jsonTypeEquipementList = json.content;
-											var optionType = $("<option/>", {"value": ""}).text("Veuillez sélectionner un type d'équipement");
-											$(selectType).append(optionType);
-											for (var i = 0; i < jsonTypeEquipementList.length; ++i) {
-												var jsonTypeEquipement = jsonTypeEquipementList[i];
-												optionType = $("<option/>", {"value": jsonTypeEquipement.id}).text(jsonTypeEquipement.libelle);
-												if (parameters.type === jsonTypeEquipement.id) {
-													$(optionType).attr("selected", "selected");
-												}
-												$(selectType).append(optionType);
-											}
-										}
-									}
-								});
-
-								var labelFabricant = $("<label/>", {"class": "control-label", "for": "fabricant"}).text("Fabricant");
-								var selectFabricant = $("<select/>", {"class": "form-control", "id": "fabricant", "name": "fabricant"});
-								var divFormGroupFabricant = $("<div/>", {"class": "form-group"});
-								$.ajax({
-									url: "<?php echo $url . 'api/fabricant'; ?>",
-									type: "GET",
-									success: function (json) {
-										console.log(json);
-										if (json.state === "ko") {
-											alert(json.error);
-										} else {
-											var jsonFabricantList = json.content;
-											var optionFabricant = $("<option/>", {"value": ""}).text("Veuillez sélectionner un fabricant");
-											$(selectFabricant).append(optionFabricant);
-											for (var i = 0; i < jsonFabricantList.length; ++i) {
-												var jsonFabricant = jsonFabricantList[i];
-												optionFabricant = $("<option/>", {"value": jsonFabricant.id}).text(jsonFabricant.nom);
-												if (parameters.fabricant === jsonFabricant.id) {
-													$(optionFabricant).attr("selected", "selected");
-												}
-												$(selectFabricant).append(optionFabricant);
-											}
-										}
-									}
-								});
-
-								var labelPere = $("<label/>", {"class": "control-label", "for": "pere"}).text("Père");
-								var selectPere = $("<select/>", {"class": "form-control", "id": "pere", "name": "pere"});
-								var divFormGroupPere = $("<div/>", {"class": "form-group"});
-								$.ajax({
-									url: "<?php echo $url . "api/equipement"; ?>",
-									type: "GET",
-									//data: $this.serialize(),
-									success: function (json) {
-										console.log(json);
-										if (json.state === "ko") {
-											alert(json.error);
-										} else {
-											var ul = $("<ul/>", {"class": "list-group"});
-											var jsonEquipementList = json.content;
-											var optionPere = $("<option/>", {"value": ""}).text("Aucun");
-											$(selectPere).append(optionPere);
-											for (var i = 0; i < jsonEquipementList.length; ++i) {
-												var jsonEquipement = jsonEquipementList[i];
-												optionPere = $("<option/>", {"value": jsonEquipement.id}).text(jsonEquipement.nom);
-												if (parameters.pere === jsonEquipement.id) {
-													$(optionPere).attr("selected", "selected");
-												}
-												$(selectPere).append(optionPere);
-											}
-										}
-									}
-								});
-
-								var labelNom = $("<label/>", {"class": "control-label", "for": "nom"}).text("Nom");
-								var inputNom = $("<input/>", {"class": "form-control", "type": "text", "id": "nom", "name": "nom", "value": parameters.nom});
-								var divGroupNom = $("<div/>", {"class": "form-group"});
-
-								var labelAdresseIp = $("<label/>", {"class": "control-label", "for": "adresse_ip"}).text("Adresse Ip");
-								var inputAdresseIP = $("<input/>", {"class": "form-control", "type": "text", "id": "adresse_ip", "name": "adresse_ip", "value": parameters.adresseIp});
-								var divFormGroupAdresseIp = $("<div/>", {"class": "form-group"});
-
-								var labelAdressePhysique = $("<label/>", {"class": "control-label", "for": "adresse_physique"}).text("Adresse Physique");
-								var inputAdressePhysique = $("<input/>", {"class": "form-control", "type": "text", "id": "adresse_physique", "name": "adresse_physique", "value": parameters.adressePhysique});
-								var divFormGroupAdressePhysique = $("<div/>", {"class": "form-group"});
-
-								var labelUtilisateur = $("<label/>", {"class": "control-label", "for": "utilisateur"}).text("Utilisateur");
-								var inputUtilisateur = $("<input/>", {"class": "form-control", "type": "text", "id": "utilisateur", "name": "utilisateur", "value": parameters.utilisateur});
-								var divFormGroupUtilisateur = $("<div/>", {"class": "form-group"});
-
-								var labelNumeroSupport = $("<label/>", {"class": "control-label", "for": "numero_support"}).text("N° du support");
-								var inputNumeroSupport = $("<input/>", {"class": "form-control", "type": "text", "id": "numero_support", "name": "numero_support", "value": parameters.numeroSupport});
-								var divFormGroupNumeroSupport = $("<div/>", {"class": "form-group"});
-
-								if (parameters.id === null) {
-									var form = $("<form/>", {"method": "POST", "action": "api/equipement"});
-								} else {
-									var form = $("<form/>", {"method": "POST", "action": "api/equipement/" + parameters.id});
-								}
-								$(divFormGroupId).append(labelId);
-								$(divFormGroupId).append(inputId);
-								$(form).append(divFormGroupId);
-								$(divFormGroupType).append(labelType);
-								$(divFormGroupType).append(selectType);
-								$(form).append(divFormGroupType);
-								$(divFormGroupFabricant).append(labelFabricant);
-								$(divFormGroupFabricant).append(selectFabricant);
-								$(form).append(divFormGroupFabricant);
-								$(divFormGroupPere).append(labelPere);
-								$(divFormGroupPere).append(selectPere);
-								$(form).append(divFormGroupPere);
-								$(divGroupNom).append(labelNom);
-								$(divGroupNom).append(inputNom);
-								$(form).append(divGroupNom);
-								$(divFormGroupAdresseIp).append(labelAdresseIp);
-								$(divFormGroupAdresseIp).append(inputAdresseIP);
-								$(form).append(divFormGroupAdresseIp);
-								$(divFormGroupAdressePhysique).append(labelAdressePhysique);
-								$(divFormGroupAdressePhysique).append(inputAdressePhysique);
-								$(form).append(divFormGroupAdressePhysique);
-								$(divFormGroupUtilisateur).append(labelUtilisateur);
-								$(divFormGroupUtilisateur).append(inputUtilisateur);
-								$(form).append(divFormGroupUtilisateur);
-								$(divFormGroupNumeroSupport).append(labelNumeroSupport);
-								$(divFormGroupNumeroSupport).append(inputNumeroSupport);
-								$(form).append(divFormGroupNumeroSupport);
-
-								$(form).submit(function (e) {
-									e.preventDefault();
-									var $this = $(this);
-
-									console.log($this.attr('action'), $this.attr('method'), $this.serialize());
-
-									$.ajax({
-										url: $this.attr('action'),
-										type: $this.attr('method'),
-										data: $this.serialize(),
-										success: function (html) {
-											$("#myModal").modal('hide');
-											$("#debug").html(html);
-										}
-									});
-
-								});
-
-								return form;
-							}
-
-							function setSizeModal(modal, size) {
-								var modalDialog = $(modal).find(".modal-dialog");
-								if (size === "small") {
-									if ($(modalDialog).hasClass("modal-lg")) {
-										$(modalDialog).removeClass("modal-lg");
-									}
-									$(modalDialog).addClass("modal-sm");
-								} else if (size === "medium") {
-									if ($(modalDialog).hasClass("modal-lg")) {
-										$(modalDialog).removeClass("modal-lg");
-									}
-									if ($(modalDialog).hasClass("modal-sm")) {
-										$(modalDialog).removeClass("modal-sm");
-									}
-								} else if (size === "large") {
-									if ($(modalDialog).hasClass("modal-sm")) {
-										$(modalDialog).removeClass("modal-sm");
-									}
-									$(modalDialog).addClass("modal-lg");
-								}
-							}
-
-							function initEquipementList() {
-								$.ajax({
-									url: "<?php echo $url . "api/equipement"; ?>",
-									type: "GET",
-									//data: $this.serialize(),
-									success: function (json) {
-										if (json.state === "ko") {
-											alert(json.error);
-										} else {
-											var ul = $("<ul/>", {"id": "ul_equipement", "class": "list-group"});
-											var jsonEquipements = json.content;
-											for (var i = 0; i < jsonEquipements.length; ++i) {
-												var jsonEquipement = jsonEquipements[i];
-												var li = $("<li/>", {"class": "list-group-item", "data-equipement-id": jsonEquipement.id, "data-etat-technique": jsonEquipement.etatTechnique, "data-etat-fonctionnel": jsonEquipement.etatFonctionnel});
-												var spanGlyphiconCheck = $("<span/>", {"class": "glyphicon glyphicon-check"});
-												var btnRead = $("<button/>", {"type": "button", "class": "btn btn-info btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"});
-												var spanGlyphiconEdit = $("<span/>", {"class": "glyphicon glyphicon-edit"});
-												var btnUpdate = $("<button/>", {"type": "button", "class": "btn btn-warning btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "update", "data-toggle": "modal", "data-target": "#myModal", "data-size": "large"});
-												var spanGlyphiconTrash = $("<span/>", {"class": "glyphicon glyphicon-trash"});
-												var btnDelete = $("<button/>", {"type": "button", "class": "btn btn-danger btn-xs btn-delete", "data-equipement-id": jsonEquipement.id, "data-operation": "delete", "data-toggle": "modal", "data-target": "#myModal", "data-size": "small"});
-												var divBtnGroup = $("<div/>", {"class": "btn-group pull-right", "role": "group", "aria-label": "Opération"});
-												$(btnRead).append(spanGlyphiconCheck);
-												$(divBtnGroup).append(btnRead);
-												$(btnUpdate).append(spanGlyphiconEdit);
-												$(divBtnGroup).append(btnUpdate);
-												$(btnDelete).append(spanGlyphiconTrash);
-												$(divBtnGroup).append(btnDelete);
-
-												$(li).append(divBtnGroup);
-												$(li).append(" " + jsonEquipement.id + " - " + jsonEquipement.nom);
-
-												$(ul).append(li);
-											}
-
-											$("#equipement_list").append(ul);
-
-										}
-									}
-								});
-							}
-							function initChangementEtatList() {
-								$.ajax({
-									url: "<?php echo $url . "api/changement-etat"; ?>",
-									type: "GET",
-									//data: $this.serialize(),
-									success: function (json) {
-										if (json.state === "ko") {
-											alert(json.error);
-										} else {
-											var ul = $("<ul/>", {"id": "ul_changement_etat", "class": "list-group"});
-											var jsonChangementEtatList = json.content;
-											for (var i = 0; i < jsonChangementEtatList.length; ++i) {
-												var jsonChangementEtat = jsonChangementEtatList[i];
-												var li = $("<li/>", {"class": "list-group-item", "data-changement-etat-id": jsonChangementEtat.id});
-												
-												var btnRead = $("<a/>", {"href": "#", "data-equipement-id": jsonChangementEtat.equipement, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"}).text(jsonChangementEtat.equipement);
-												
-												var dateChangementEtat = new Date(jsonChangementEtat.date);
-												var formatedDateChangementEtat = (dateChangementEtat.getDate()<10 ? "0"+dateChangementEtat.getDate():dateChangementEtat.getDate())
-												+"/"+(dateChangementEtat.getMonth()<10 ? "0"+dateChangementEtat.getMonth():dateChangementEtat.getMonth())
-												+" à "+(dateChangementEtat.getHours()<10 ? "0"+dateChangementEtat.getHours():dateChangementEtat.getHours())
-												+"H"+(dateChangementEtat.getMinutes()<10 ? "0"+dateChangementEtat.getMinutes():dateChangementEtat.getMinutes());
-												
-												var text = "";
-												if (jsonChangementEtat.type === "1") {// ajout
-													text = "Ajout de l'équipement ";
-												} else if (jsonChangementEtat.type === "2") {// Modif Propriétés
-													text = "Modification des propriétés de l'équipement ";
-												} else if (jsonChangementEtat.type === "3") {// Modif etat fonctionnel (Marche/Arrêt)
-													text = "Modification des propriétés de l'équipement ";
-												} else if (jsonChangementEtat.type === "4") {// Modif etat technique (Panne)
-													text = "Modification de l'état technique de l'équipement ";
-												} else {
-													alert("Type de changement non pris en compte : "+jsonChangementEtat.type)
-												}
-												
-												$(li).append(text);
-												$(li).append(btnRead);
-												$(li).append(" le " + formatedDateChangementEtat);
-
-												$(ul).append(li);
-											}
-
-											$("#changement_etat_list").append(ul);
-
-										}
-									}
-								});
-							}
-							initEquipementList();
-							initChangementEtatList();
-							initSSE();
-							initSSEChangementEtat();
-							console.log(window);
 						});
+					}
+				});
+
+				function getEquipementForm(options) {
+					var defaults = {
+						"id": null,
+						"pere": null,
+						"fabricant": "0",
+						"type": "0",
+						"nom": null,
+						"adresseIp": null,
+						"adressePhysique": null,
+						"numeroSupport": null,
+						"utilisateur": null
+					};
+
+					var parameters = $.extend(defaults, options);
+
+					var labelId = $("<label/>", {"class": "control-label", "for": "id"}).text("Identifiant");
+					var inputId = $("<input/>", {"class": "form-control", "type": "text", "id": "id", "name": "id", "value": parameters.id, "pattern":"^[A-Z][A-Z0-9]{7}$", "required":"required"});
+					var divFormGroupId = $("<div/>", {"class": "form-group"});
+
+					var labelType = $("<label/>", {"class": "control-label", "for": "type"}).text("Type");
+					var selectType = $("<select/>", {"class": "form-control", "id": "type", "name": "type"});
+					var divFormGroupType = $("<div/>", {"class": "form-group"});
+					$.ajax({
+						url: "<?php echo $url . 'api/type_equipement'; ?>",
+						type: "GET",
+						success: function (json) {
+							console.log(json);
+							if (json.state === "ko") {
+								alert(json.error);
+							} else {
+								var jsonTypeEquipementList = json.content;
+								var optionType = $("<option/>", {"value": ""}).text("Veuillez sélectionner un type d'équipement");
+								$(selectType).append(optionType);
+								for (var i = 0; i < jsonTypeEquipementList.length; ++i) {
+									var jsonTypeEquipement = jsonTypeEquipementList[i];
+									optionType = $("<option/>", {"value": jsonTypeEquipement.id}).text(jsonTypeEquipement.libelle);
+									if (parameters.type === jsonTypeEquipement.id) {
+										$(optionType).attr("selected", "selected");
+									}
+									$(selectType).append(optionType);
+								}
+							}
+						}
+					});
+
+					var labelFabricant = $("<label/>", {"class": "control-label", "for": "fabricant"}).text("Fabricant");
+					var selectFabricant = $("<select/>", {"class": "form-control", "id": "fabricant", "name": "fabricant"});
+					var divFormGroupFabricant = $("<div/>", {"class": "form-group"});
+					$.ajax({
+						url: "<?php echo $url . 'api/fabricant'; ?>",
+						type: "GET",
+						success: function (json) {
+							console.log(json);
+							if (json.state === "ko") {
+								alert(json.error);
+							} else {
+								var jsonFabricantList = json.content;
+								var optionFabricant = $("<option/>", {"value": ""}).text("Veuillez sélectionner un fabricant");
+								$(selectFabricant).append(optionFabricant);
+								for (var i = 0; i < jsonFabricantList.length; ++i) {
+									var jsonFabricant = jsonFabricantList[i];
+									optionFabricant = $("<option/>", {"value": jsonFabricant.id}).text(jsonFabricant.nom);
+									if (parameters.fabricant === jsonFabricant.id) {
+										$(optionFabricant).attr("selected", "selected");
+									}
+									$(selectFabricant).append(optionFabricant);
+								}
+							}
+						}
+					});
+
+					var labelPere = $("<label/>", {"class": "control-label", "for": "pere"}).text("Père");
+					var selectPere = $("<select/>", {"class": "form-control", "id": "pere", "name": "pere"});
+					var divFormGroupPere = $("<div/>", {"class": "form-group"});
+					$.ajax({
+						url: "<?php echo $url . "api/equipement"; ?>",
+						type: "GET",
+						//data: $this.serialize(),
+						success: function (json) {
+							console.log(json);
+							if (json.state === "ko") {
+								alert(json.error);
+							} else {
+								var ul = $("<ul/>", {"class": "list-group"});
+								var jsonEquipementList = json.content;
+								var optionPere = $("<option/>", {"value": ""}).text("Aucun");
+								$(selectPere).append(optionPere);
+								for (var i = 0; i < jsonEquipementList.length; ++i) {
+									var jsonEquipement = jsonEquipementList[i];
+									optionPere = $("<option/>", {"value": jsonEquipement.id}).text(jsonEquipement.nom);
+									if (parameters.pere === jsonEquipement.id) {
+										$(optionPere).attr("selected", "selected");
+									}
+									$(selectPere).append(optionPere);
+								}
+							}
+						}
+					});
+
+					var labelNom = $("<label/>", {"class": "control-label", "for": "nom"}).text("Nom");
+					var inputNom = $("<input/>", {"class": "form-control", "type": "text", "id": "nom", "name": "nom", "value": parameters.nom});
+					var divGroupNom = $("<div/>", {"class": "form-group"});
+
+					var labelAdresseIp = $("<label/>", {"class": "control-label", "for": "adresse_ip"}).text("Adresse Ip");
+					var inputAdresseIP = $("<input/>", {"class": "form-control", "type": "text", "id": "adresse_ip", "name": "adresse_ip", "value": parameters.adresseIp});
+					var divFormGroupAdresseIp = $("<div/>", {"class": "form-group"});
+
+					var labelAdressePhysique = $("<label/>", {"class": "control-label", "for": "adresse_physique"}).text("Adresse Physique");
+					var inputAdressePhysique = $("<input/>", {"class": "form-control", "type": "text", "id": "adresse_physique", "name": "adresse_physique", "value": parameters.adressePhysique});
+					var divFormGroupAdressePhysique = $("<div/>", {"class": "form-group"});
+
+					var labelUtilisateur = $("<label/>", {"class": "control-label", "for": "utilisateur"}).text("Utilisateur");
+					var inputUtilisateur = $("<input/>", {"class": "form-control", "type": "text", "id": "utilisateur", "name": "utilisateur", "value": parameters.utilisateur});
+					var divFormGroupUtilisateur = $("<div/>", {"class": "form-group"});
+
+					var labelNumeroSupport = $("<label/>", {"class": "control-label", "for": "numero_support"}).text("N° du support");
+					var inputNumeroSupport = $("<input/>", {"class": "form-control", "type": "text", "id": "numero_support", "name": "numero_support", "value": parameters.numeroSupport});
+					var divFormGroupNumeroSupport = $("<div/>", {"class": "form-group"});
+
+					if (parameters.id === null) {
+						var form = $("<form/>", {"method": "POST", "action": "api/equipement"});
+					} else {
+						var form = $("<form/>", {"method": "POST", "action": "api/equipement/" + parameters.id});
+					}
+					$(divFormGroupId).append(labelId);
+					$(divFormGroupId).append(inputId);
+					$(form).append(divFormGroupId);
+					$(divFormGroupType).append(labelType);
+					$(divFormGroupType).append(selectType);
+					$(form).append(divFormGroupType);
+					$(divFormGroupFabricant).append(labelFabricant);
+					$(divFormGroupFabricant).append(selectFabricant);
+					$(form).append(divFormGroupFabricant);
+					$(divFormGroupPere).append(labelPere);
+					$(divFormGroupPere).append(selectPere);
+					$(form).append(divFormGroupPere);
+					$(divGroupNom).append(labelNom);
+					$(divGroupNom).append(inputNom);
+					$(form).append(divGroupNom);
+					$(divFormGroupAdresseIp).append(labelAdresseIp);
+					$(divFormGroupAdresseIp).append(inputAdresseIP);
+					$(form).append(divFormGroupAdresseIp);
+					$(divFormGroupAdressePhysique).append(labelAdressePhysique);
+					$(divFormGroupAdressePhysique).append(inputAdressePhysique);
+					$(form).append(divFormGroupAdressePhysique);
+					$(divFormGroupUtilisateur).append(labelUtilisateur);
+					$(divFormGroupUtilisateur).append(inputUtilisateur);
+					$(form).append(divFormGroupUtilisateur);
+					$(divFormGroupNumeroSupport).append(labelNumeroSupport);
+					$(divFormGroupNumeroSupport).append(inputNumeroSupport);
+					$(form).append(divFormGroupNumeroSupport);
+
+					$(form).submit(function (e) {
+						e.preventDefault();
+						var $this = $(this);
+
+						console.log($this.attr('action'), $this.attr('method'), $this.serialize());
+
+						/*$.ajax({
+							url: $this.attr('action'),
+							type: $this.attr('method'),
+							data: $this.serialize(),
+							success: function (html) {
+								$("#myModal").modal('hide');
+								$("#debug").html(html);
+							}
+						});*/
+
+					});
+
+					return form;
+				}
+
+				function setSizeModal(modal, size) {
+					var modalDialog = $(modal).find(".modal-dialog");
+					if (size === "small") {
+						if ($(modalDialog).hasClass("modal-lg")) {
+							$(modalDialog).removeClass("modal-lg");
+						}
+						$(modalDialog).addClass("modal-sm");
+					} else if (size === "medium") {
+						if ($(modalDialog).hasClass("modal-lg")) {
+							$(modalDialog).removeClass("modal-lg");
+						}
+						if ($(modalDialog).hasClass("modal-sm")) {
+							$(modalDialog).removeClass("modal-sm");
+						}
+					} else if (size === "large") {
+						if ($(modalDialog).hasClass("modal-sm")) {
+							$(modalDialog).removeClass("modal-sm");
+						}
+						$(modalDialog).addClass("modal-lg");
+					}
+				}
+
+				function initEquipementList() {
+					$.ajax({
+						url: "<?php echo $url . "api/equipement"; ?>",
+						type: "GET",
+						//data: $this.serialize(),
+						success: function (json) {
+							if (json.state === "ko") {
+								alert(json.error);
+							} else {
+								var ul = $("<ul/>", {"id": "ul_equipement", "class": "list-group"});
+								var jsonEquipements = json.content;
+								for (var i = 0; i < jsonEquipements.length; ++i) {
+									var jsonEquipement = jsonEquipements[i];
+									var li = $("<li/>", {"class": "list-group-item", "data-equipement-id": jsonEquipement.id, "data-etat-technique": jsonEquipement.etatTechnique, "data-etat-fonctionnel": jsonEquipement.etatFonctionnel});
+									var spanGlyphiconCheck = $("<span/>", {"class": "glyphicon glyphicon-check"});
+									var btnRead = $("<button/>", {"type": "button", "class": "btn btn-info btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"});
+									var spanGlyphiconEdit = $("<span/>", {"class": "glyphicon glyphicon-edit"});
+									var btnUpdate = $("<button/>", {"type": "button", "class": "btn btn-warning btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "update", "data-toggle": "modal", "data-target": "#myModal", "data-size": "large"});
+									var spanGlyphiconTrash = $("<span/>", {"class": "glyphicon glyphicon-trash"});
+									var btnDelete = $("<button/>", {"type": "button", "class": "btn btn-danger btn-xs btn-delete", "data-equipement-id": jsonEquipement.id, "data-operation": "delete", "data-toggle": "modal", "data-target": "#myModal", "data-size": "small"});
+									var divBtnGroup = $("<div/>", {"class": "btn-group pull-right", "role": "group", "aria-label": "Opération"});
+									$(btnRead).append(spanGlyphiconCheck);
+									$(divBtnGroup).append(btnRead);
+									$(btnUpdate).append(spanGlyphiconEdit);
+									$(divBtnGroup).append(btnUpdate);
+									$(btnDelete).append(spanGlyphiconTrash);
+									$(divBtnGroup).append(btnDelete);
+
+									$(li).append(divBtnGroup);
+									$(li).append(" " + jsonEquipement.id + " - " + jsonEquipement.nom);
+
+									$(ul).append(li);
+								}
+
+								$("#equipement_list").append(ul);
+
+							}
+						}
+					});
+				}
+				function initChangementEtatList() {
+					$.ajax({
+						url: "<?php echo $url . "api/changement-etat"; ?>",
+						type: "GET",
+						//data: $this.serialize(),
+						success: function (json) {
+							if (json.state === "ko") {
+								alert(json.error);
+							} else {
+								var ul = $("<ul/>", {"id": "ul_changement_etat", "class": "list-group"});
+								var jsonChangementEtatList = json.content;
+								for (var i = 0; i < jsonChangementEtatList.length; ++i) {
+									var jsonChangementEtat = jsonChangementEtatList[i];
+									var li = $("<li/>", {"class": "list-group-item", "data-changement-etat-id": jsonChangementEtat.id});
+
+									var btnRead = $("<a/>", {"href": "#", "data-equipement-id": jsonChangementEtat.equipement, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"}).text(jsonChangementEtat.equipement);
+
+									var dateChangementEtat = new Date(jsonChangementEtat.date);
+									var formatedDateChangementEtat = (dateChangementEtat.getDate()<10 ? "0"+dateChangementEtat.getDate():dateChangementEtat.getDate())
+									+"/"+(dateChangementEtat.getMonth()<10 ? "0"+dateChangementEtat.getMonth():dateChangementEtat.getMonth())
+									+" à "+(dateChangementEtat.getHours()<10 ? "0"+dateChangementEtat.getHours():dateChangementEtat.getHours())
+									+"H"+(dateChangementEtat.getMinutes()<10 ? "0"+dateChangementEtat.getMinutes():dateChangementEtat.getMinutes());
+
+									var text = "";
+									if (jsonChangementEtat.type === "1") {// ajout
+										text = "Ajout de l'équipement ";
+									} else if (jsonChangementEtat.type === "2") {// Modif Propriétés
+										text = "Modification des propriétés de l'équipement ";
+									} else if (jsonChangementEtat.type === "3") {// Modif etat fonctionnel (Marche/Arrêt)
+										text = "Modification des propriétés de l'équipement ";
+									} else if (jsonChangementEtat.type === "4") {// Modif etat technique (Panne)
+										text = "Modification de l'état technique de l'équipement ";
+									} else {
+										alert("Type de changement non pris en compte : "+jsonChangementEtat.type)
+									}
+
+									$(li).append(text);
+									$(li).append(btnRead);
+									$(li).append(" le " + formatedDateChangementEtat);
+
+									$(ul).append(li);
+								}
+
+								$("#changement_etat_list").append(ul);
+
+							}
+						}
+					});
+				}
+				initEquipementList();
+				initChangementEtatList();
+				initSSE();
+				initSSEChangementEtat();
+				console.log(window);
+			});
 		</script>
 	</body>
 </html>

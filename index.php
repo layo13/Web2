@@ -112,7 +112,7 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	$fabricantList = $fabricantManager->get();
 
 	$jsonFabricantList = array();
-	/* @var $equipement \Library\Entity\Fabricant */
+	/* @var $fabricant \Library\Entity\Fabricant */
 	foreach ($fabricantList as $fabricant) {
 		$jsonFabricantList[] = array(
 			'id' => $fabricant->getId(),
@@ -125,7 +125,7 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	);
 	echo json_encode($jsonResponse);
 } else if (preg_match("`^/api/etat_fonctionnel`", $requestUri, $matches) && $requestMethod == "GET") {
-	header('Content-Type: application/json');
+	header('Content-Type: application/json; Charset=UTF-8');
 	$etatFonctionnelManager = new \Library\Model\EtatFonctionnelManager($pdo);
 	$etatFonctionnelList = $etatFonctionnelManager->get();
 
@@ -143,7 +143,7 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	);
 	echo json_encode($jsonResponse);
 } else if (preg_match("`^/api/changement-etat`", $requestUri, $matches) && $requestMethod == "GET") {
-	header('Content-Type: application/json');
+	header('Content-Type: application/json; Charset=UTF-8');
 	$changementEtatManager = new \Library\Model\ChangementEtatManager($pdo);
 	$changementEtatList = $changementEtatManager->get();
 
@@ -167,5 +167,5 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	echo json_encode($jsonResponse);
 } else {
 	header('HTTP/1.0 404 Not Found');
-	echo "Page non trouvée ...";
+	require("404.php");
 }
