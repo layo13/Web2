@@ -299,7 +299,9 @@
 				 * GESTION DU MODAL
 				 */
 				$('#myModal').on('hidden.bs.modal', function (event) {
+					var modal = $(this);
 					$("#myModalBody").empty();
+					
 				});
 				$('#myModal').on('show.bs.modal', function (event) {
 					var button = $(event.relatedTarget);
@@ -479,6 +481,7 @@
 						$("#myModalBody").append(form);
 						$(modal).find(".btn.btn-primary").click(function () {
 							$(form).submit();
+							$(this).unbind();
 						});
 					} else if (operation === "update") {
 						$.ajax({
@@ -494,6 +497,7 @@
 									$("#myModalBody").append(form);
 									$(modal).find(".btn.btn-primary").click(function () {
 										$(form).submit();
+										$(this).unbind();
 									});
 								}
 							},
@@ -505,8 +509,9 @@
 						$("#myModalBody").text("Voulez-vous vraiment supprimer cet équipement ?");
 						$(modal).find(".btn.btn-primary").click(function () {
 							$("#myModal").modal('hide');
+							$(this).unbind();
 							$.ajax({
-								url: "<?php echo $url . 'api/equipement/'; ?>" + equipementId,
+								url: "<?php echo $url; ?>api/equipement/" + equipementId,
 								type: "DELETE",
 								success: function (json) {
 									console.log(json);
@@ -650,9 +655,9 @@
 					var divFormGroupNumeroSupport = $("<div/>", {"class": "form-group"});
 
 					if (parameters.id === null) {
-						var form = $("<form/>", {"method": "POST", "action": "api/equipement"});
+						var form = $("<form/>", {"method": "POST", "action": "<?php echo $url; ?>api/equipement"});
 					} else {
-						var form = $("<form/>", {"method": "POST", "action": "api/equipement/" + parameters.id});
+						var form = $("<form/>", {"method": "POST", "action": "<?php echo $url; ?>api/equipement/" + parameters.id});
 					}
 					$(divFormGroupId).append(labelId);
 					$(divFormGroupId).append(inputId);
@@ -688,15 +693,16 @@
 
 						console.log($this.attr('action'), $this.attr('method'), $this.serialize());
 
-						/*$.ajax({
+						$.ajax({
 							url: $this.attr('action'),
 							type: $this.attr('method'),
 							data: $this.serialize(),
 							success: function (html) {
+								$($this).unbind();
 								$("#myModal").modal('hide');
 								$("#debug").html(html);
 							}
-						});*/
+						});
 
 					});
 
