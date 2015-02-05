@@ -16,6 +16,11 @@ class EquipementManager {
 		$this->pdo = $pdo;
 	}
 
+	/**
+	 * 
+	 * @param string $id
+	 * @return Equipement
+	 */
 	public function getUnique($id) {
 		$requete = $this->pdo->prepare("SELECT * FROM equipement WHERE id = :id");
 		$requete->bindValue(":id", $id);
@@ -40,14 +45,53 @@ class EquipementManager {
 			$equipement->setMessageMaintenance($row['message_maintenance']);
 			$equipement->setNumeroSupport($row['numero_support']);
 			$equipement->setUtilisateur($row['utilisateur']);
+			$equipement->setOldId($row['id']);
 			return $equipement;
 		} else {
 			return NULL;
 		} 
 	}
 
+	/**
+	 * 
+	 * @return array
+	 */
 	public function get() {
 		$requete = $this->pdo->query("SELECT * FROM equipement");
+		$equipementList = array();
+		$etatFonctionnelManager = new EtatFonctionnelManager($this->pdo);
+		$etatTechniqueManager = new EtatTechniqueManager($this->pdo);
+		$fabricantManager = new FabricantManager($this->pdo);
+		$typeEquipementManager = new TypeEquipementManager($this->pdo);
+		foreach ($requete->fetchAll() as $row) {
+			
+			$equipement = new Equipement();
+			$equipement->setId($row['id']);
+			$equipement->setPere($this->getUnique($row['pere']));
+			$equipement->setEtatTechnique($etatTechniqueManager->getUnique($row['etat_technique']));
+			$equipement->setEtatFonctionnel($etatFonctionnelManager->getUnique($row['etat_fonctionnel']));
+			$equipement->setFabricant($fabricantManager->getUnique($row['fabricant']));
+			$equipement->setType($typeEquipementManager->getUnique($row['type']));
+			$equipement->setNom($row['nom']);
+			$equipement->setAdresseIp($row['adresse_ip']);
+			$equipement->setAdressePhysique($row['adresse_physique']);
+			$equipement->setMessageMaintenance($row['message_maintenance']);
+			$equipement->setNumeroSupport($row['numero_support']);
+			$equipement->setUtilisateur($row['utilisateur']);
+			$equipement->setOldId($row['id']);
+			
+			$equipementList[] = $equipement;
+		}
+		return $equipementList;
+	}
+	
+	public function getByPere($pere) {
+		$requete = $this->pdo->prepare("SELECT * FROM equipement where pere = :pere");
+		$requete->bindValue(":pere", $pere);
+		$ok = $requete->execute();
+		if ($ok == false) {
+			return $ok;
+		}
 		$equipementList = array();
 		$etatFonctionnelManager = new EtatFonctionnelManager($this->pdo);
 		$etatTechniqueManager = new EtatTechniqueManager($this->pdo);
@@ -94,11 +138,11 @@ class EquipementManager {
 	public function update(Equipement $equipement) {
 		$requete = $this->pdo->prepare("UPDATE equipement SET id = :id, pere = :pere, etat_technique = :etatTechnique, etat_fonctionnel = :etatFonctionnel, fabricant = :fabricant, type = :type, nom = :nom, adresse_ip = :adresseIp, adresse_physique = :adressePhysique, message_maintenance = :messageMaintenance, numero_support = :numeroSupport, utilisateur = :utilisateur WHERE id = :oldId");
 		$requete->bindValue(':id', $equipement->getId());
-		$requete->bindValue(':pere', $equipement->getPere());
-		$requete->bindValue(':etatTechnique', $equipement->getEtatTechnique());
-		$requete->bindValue(':etatFonctionnel', $equipement->getEtatFonctionnel());
-		$requete->bindValue(':fabricant', $equipement->getFabricant());
-		$requete->bindValue(':type', $equipement->getType());
+		$requete->bindValue(':pere', $equipement->getPere() !== null ? $equipement->getPere()->getId() : null);
+		$requete->bindValue(':etatTechnique', $equipement->getEtatTechnique()->getId());
+		$requete->bindValue(':etatFonctionnel', $equipement->getEtatFonctionnel()->getId());
+		$requete->bindValue(':fabricant', $equipement->getFabricant()->getId());
+		$requete->bindValue(':type', $equipement->getType()->getId());
 		$requete->bindValue(':nom', $equipement->getNom());
 		$requete->bindValue(':adresseIp', $equipement->getAdresseIp());
 		$requete->bindValue(':adressePhysique', $equipement->getAdressePhysique());

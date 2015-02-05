@@ -4,6 +4,10 @@ namespace Library\Controller;
 
 use Library\Entity\Equipement;
 use Library\Model\EquipementManager;
+use Library\Model\EtatTechniqueManager;
+use Library\Model\EtatFonctionnelManager;
+use Library\Model\FabricantManager;
+use Library\Model\TypeEquipementManager;
 use Library\PDOProvider;
 
 class EquipementController {
@@ -62,7 +66,8 @@ class EquipementController {
 				'id' => $equipement->getId(),
 				'pere' => $equipement->getPere() !== null ? array(
 					'id' => $equipement->getPere()->getId(),
-					'nom' => $equipement->getPere()->getNom()
+					'nom' => $equipement->getPere()->getNom(),
+					'type' => $equipement->getPere()->getType()
 				) : null,
 				'etatTechnique' => array(
 					'id' => $equipement->getEtatTechnique()->getId(),
@@ -137,6 +142,9 @@ class EquipementController {
 		$jsonResponse = array();
 
 		$equipementManager = new EquipementManager(PDOProvider::getInstance());
+		$fabricantManager = new FabricantManager(PDOProvider::getInstance());
+		$typeEquipementManager = new TypeEquipementManager(PDOProvider::getInstance());
+		
 		$equipement = $equipementManager->getUnique($oldId);
 
 		$id = $_POST['id'];
@@ -151,8 +159,8 @@ class EquipementController {
 
 		$equipement->setId($id);
 		$equipement->setOldId($oldId);
-		$equipement->setType($type);
-		$equipement->setFabricant($fabricant);
+		$equipement->setType($typeEquipementManager->getUnique($type));
+		$equipement->setFabricant($fabricantManager->getUnique($fabricant));
 
 		if ($pere !== "") {
 			$equipement->setPere($pere);
@@ -183,4 +191,40 @@ class EquipementController {
 		return json_encode($jsonResponse);
 	}
 
+	public function rebootPark() {
+		
+	}
+
+	public function heaveMaterial($id, $etatTechniqueId) {
+		var_dump($id, $etatTechniqueId);
+		$equipementManager = new EquipementManager(PDOProvider::getInstance());
+		$etatTechniqueManager = new EtatTechniqueManager(PDOProvider::getInstance());
+		$etatFonctionnelManager = new EtatFonctionnelManager(PDOProvider::getInstance());
+		
+		$equipement = $equipementManager->getUnique($id);
+		var_dump($equipement);
+		// Mise en panne
+		if ($etatTechniqueId !== 0) { // C'est le pere, on change l'etat technique
+			$etatTechnique = $etatTechniqueManager->getUnique($etatTechniqueId);
+			
+			$equipement->setEtatTechnique($etatTechnique);
+
+			$ok = $equipementManager->update($equipement);
+			if ($ok === false) {
+				return $ok;
+			}
+		} else { // C'est les enfants, on les met en inoperant
+			$equipement->setEtatFonctionnel($etatFonctionnelManager->getUnique(4));
+			return $equipementManager->update($equipement);
+		}
+		
+		// Pareil pour les enfants
+		$enfants = $equipementManager->getByPere($id);
+		foreach ($enfants as $enfant) {
+			$ok = $this->heaveMaterial($enfant->getId(), 0);
+			if ($ok === false) {
+				return $ok;
+			}
+		}
+	}
 }

@@ -83,8 +83,6 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	$id = $matches[1];
 	echo $equipementController->update($id);
 } else if (preg_match("`^/api/equipement/([a-z0-9]+)$`i", $requestUri, $matches) && $requestMethod == "DELETE") {
-	
-	
 	$equipementController = new Library\Controller\EquipementController();
 	$id = $matches[1];
 	echo $equipementController->delete($id);
@@ -106,6 +104,10 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 		"content" => $jsonTypeEquipementList
 	);
 	echo json_encode($jsonResponse);
+} else if (preg_match("`^/api/simulator/equipement/heave/([a-zA-Z0-9]+)$`", $requestUri, $matches) && $requestMethod == "GET") {
+	$equipementController = new Library\Controller\EquipementController();
+	$id = $matches[1];
+	echo $equipementController->heaveMaterial($id, 3);
 } else if (preg_match("`^/api/fabricant$`", $requestUri, $matches) && $requestMethod == "GET") {
 	header('Content-Type: application/json');
 	$fabricantManager = new \Library\Model\FabricantManager($pdo);

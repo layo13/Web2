@@ -18,6 +18,9 @@
 						<button id="btn_refresh" type="button" class="btn btn-primary">
 							<span class="glyphicon glyphicon-refresh"></span> Rafraîchir
 						</button>
+						<button id="btn_reboot" type="button" class="btn btn-success">
+							<span class="glyphicon glyphicon-ok"></span> Remettre en marche
+						</button>
 					</div>
 				</div>
 			</div>

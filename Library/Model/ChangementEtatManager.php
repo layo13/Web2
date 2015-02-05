@@ -3,6 +3,10 @@
 namespace Library\Model;
 
 use Library\Entity\ChangementEtat;
+use Library\Model\TypeChangementManager;
+use Library\Model\EquipementManager;
+use Library\Model\EtatFonctionnelManager;
+use Library\Model\EtatTechniqueManager;
 
 class ChangementEtatManager {
 
@@ -17,6 +21,8 @@ class ChangementEtatManager {
 		$requete->bindValue(":id", $id);
 		$requete->execute();
 		if ($row = $requete->fetch()) {
+			$equipementManager = new EquipementManager($this->pdo);
+			
 			$changementEtat = new ChangementEtat();
 			$changementEtat->setId($row['id']);
 			$changementEtat->setEquipement($row['equipement']);

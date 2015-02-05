@@ -6,7 +6,7 @@
 		<meta name = "viewport" content="width=device-width, initial-scale=1">
 		<title>Gestion des équipements</title>
 		<link rel="stylesheet" href="<?php echo $url; ?>css/bootstrap.min.css">
-		<link rel="stylesheet" href="<?php echo $url; ?>css/bootstrap-theme.min.css">
+		<!--link rel="stylesheet" href="<?php echo $url; ?>css/bootstrap-theme.min.css"-->
 		<link rel="stylesheet" href="<?php echo $url; ?>css/font-awesome.min.css">
 		<style type="text/css">
 			#equipement_list, #changement_etat_list {		
@@ -193,7 +193,28 @@
 					event.preventDefault();
 					window.open("<?php echo $url . "simulator"; ?>");
 				});
+				
+				function getLiEquipement(equipement) {
+					var li = $("<li/>", {"class": "list-group-item", "data-equipement-id": equipement.id, });
+					var spanGlyphiconCheck = $("<span/>", {"class": "glyphicon glyphicon-check"});
+					var btnRead = $("<button/>", {"type": "button", "class": "btn btn-info btn-xs", "data-equipement-id": equipement.id, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "large"});
+					var spanGlyphiconEdit = $("<span/>", {"class": "glyphicon glyphicon-edit"});
+					var btnUpdate = $("<button/>", {"type": "button", "class": "btn btn-warning btn-xs", "data-equipement-id": equipement.id, "data-operation": "update", "data-toggle": "modal", "data-target": "#myModal", "data-size": "large"});
+					var spanGlyphiconTrash = $("<span/>", {"class": "glyphicon glyphicon-trash"});
+					var btnDelete = $("<button/>", {"type": "button", "class": "btn btn-danger btn-xs btn-delete", "data-equipement-id": equipement.id, "data-operation": "delete", "data-toggle": "modal", "data-target": "#myModal", "data-size": "small"});
+					var divBtnGroup = $("<div/>", {"class": "btn-group pull-right", "role": "group", "aria-label": "Opération"});
+					var liLabel = $("<span/>", {"class": "li-label"}).text(equipement.id + " - " + equipement.nom);
+					$(btnRead).append(spanGlyphiconCheck);
+					$(divBtnGroup).append(btnRead);
+					$(btnUpdate).append(spanGlyphiconEdit);
+					$(divBtnGroup).append(btnUpdate);
+					$(btnDelete).append(spanGlyphiconTrash);
+					$(divBtnGroup).append(btnDelete);
 
+					$(li).append(divBtnGroup);
+					$(li).append(liLabel);
+					return li;
+				}
 				function initSSE() {
 					if (typeof (EventSource) !== "undefined") {
 						var source = new EventSource("<?php echo $url . "sse/equipement"; ?>");
@@ -202,7 +223,6 @@
 
 							if (json.state === "ok") {
 								var jsonEquipementList = json.content;
-
 								//addNew
 								for (var i = 0; i < jsonEquipementList.length; i++) {
 									var found = false;
@@ -217,25 +237,9 @@
 									}
 
 									if (found === false) {
-										var li = $("<li/>", {"class": "list-group-item", "data-equipement-id": jsonEquipement.id, "data-etat-technique": jsonEquipement.etatTechnique, "data-etat-fonctionnel": jsonEquipement.etatFonctionnel});
-										var spanGlyphiconCheck = $("<span/>", {"class": "glyphicon glyphicon-check"});
-										var btnRead = $("<button/>", {"type": "button", "class": "btn btn-info btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"});
-										var spanGlyphiconEdit = $("<span/>", {"class": "glyphicon glyphicon-edit"});
-										var btnUpdate = $("<button/>", {"type": "button", "class": "btn btn-warning btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "update", "data-toggle": "modal", "data-target": "#myModal", "data-size": "large"});
-										var spanGlyphiconTrash = $("<span/>", {"class": "glyphicon glyphicon-trash"});
-										var btnDelete = $("<button/>", {"type": "button", "class": "btn btn-danger btn-xs btn-delete", "data-equipement-id": jsonEquipement.id, "data-operation": "delete", "data-toggle": "modal", "data-target": "#myModal", "data-size": "small"});
-										var divBtnGroup = $("<div/>", {"class": "btn-group pull-right", "role": "group", "aria-label": "Opération"});
-										$(btnRead).append(spanGlyphiconCheck);
-										$(divBtnGroup).append(btnRead);
-										$(btnUpdate).append(spanGlyphiconEdit);
-										$(divBtnGroup).append(btnUpdate);
-										$(btnDelete).append(spanGlyphiconTrash);
-										$(divBtnGroup).append(btnDelete);
-
-										$(li).append(divBtnGroup);
-										$(li).append(" " + jsonEquipement.id + " - " + jsonEquipement.nom);
-
-										$("#ul_equipement").append(li);
+										$("#ul_equipement").append(getLiEquipement(jsonEquipement));
+									} else {
+										$(liEquipement).find(".li-label").text(jsonEquipement.id + " - " + jsonEquipement.nom);
 									}
 								}
 								//removOld
@@ -283,7 +287,6 @@
 										var li = $("<li/>", {"class": "list-group-item", "data-changement-etat-id": jsonChangementEtat.id});
 
 										$(li).append(jsonChangementEtat.date);
-										console.log(new Date(jsonChangementEtat.date));
 
 										$("#ul_changement_etat").append(li);
 									}
@@ -293,6 +296,17 @@
 					} else {
 						document.getElementById("main").innerHTML = "Sorry, your browser does not support server-sent events...";
 					}
+				}
+				
+				function getTitleAndValue(title, value) {
+					var div = $("<div/>", {"class":"col-md-4"});
+					var pageHeader = $("<div/>", {"class":"page-header"});
+					var h4 = $("<h4/>").text(title);
+
+					$(pageHeader).append(h4);
+					$(div).append(pageHeader);
+					$(div).append(value);
+					return div;
 				}
 
 				/*
@@ -305,7 +319,6 @@
 				});
 				$('#myModal').on('show.bs.modal', function (event) {
 					var button = $(event.relatedTarget);
-					console.log(button)
 					var equipementId = button.data('equipement-id') !== "undefined" ? button.data('equipement-id') : null;
 					var operation = button.data('operation');
 					var size = button.data('size');
@@ -324,148 +337,36 @@
 								} else {
 									var jsonEquipement = json.content;
 									
-									// ID ET NOM
 									var ligne1 = $("<div/>", {"class":"row"});
-									
-									var divId = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderId = $("<div/>", {"class":"page-header"});
-									var h4Id = $("<h4/>").text("Identifiant");
-									
-									var divNom = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderNom = $("<div/>", {"class":"page-header"});
-									var h4Nom = $("<h4/>").text("Nom");
-									
-									// PERE ET UTILISATEUR
 									var ligne2 = $("<div/>", {"class":"row"});
-									
-									var divPere = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderPere = $("<div/>", {"class":"page-header"});
-									var h4Pere = $("<h4/>").text("Père");
-									
-									var divUtilisateur = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderUtilisateur = $("<div/>", {"class":"page-header"});
-									var h4Utilisateur = $("<h4/>").text("Utilisateur");
-									
-									// ETATTECHNIQUE ET ETATFONCTIONNEL
 									var ligne3 = $("<div/>", {"class":"row"});
-
-									var divEtatTechnique = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderEtatTechnique = $("<div/>", {"class":"page-header"});
-									var h4EtatTechnique = $("<h4/>").text("Etat Technique");
-
-									var divEtatFonctionnel = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderEtatFonctionnel = $("<div/>", {"class":"page-header"});
-									var h4EtatFonctionnel = $("<h4/>").text("Etat Fonctionnel");
-									
-									// FABRICANT ET TYPE
 									var ligne4 = $("<div/>", {"class":"row"});
 
-									var divType = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderType = $("<div/>", {"class":"page-header"});
-									var h4Type = $("<h4/>").text("Type");
-
-									var divFabricant = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderFabricant = $("<div/>", {"class":"page-header"});
-									var h4Fabricant = $("<h4/>").text("Fabricant");
+									$(ligne1).append(getTitleAndValue("Identifiant", jsonEquipement.id));
+									$(ligne1).append(getTitleAndValue("Nom", jsonEquipement.nom));
 									
-									// ADRESSEIP ET ADRESSEPHYSIQUE
-									var ligne5 = $("<div/>", {"class":"row"});
-
-									var divAdresseIp = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderAdresseIp = $("<div/>", {"class":"page-header"});
-									var h4AdresseIp = $("<h4/>").text("Adresse Ip");
-
-									var divAdressePhysique = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderAdressePhysique = $("<div/>", {"class":"page-header"});
-									var h4AdressePhysique = $("<h4/>").text("Adresse Physique");
-
-									// MESSAGEMAINTENANCE ET NUMEROSUPPORT
-									var ligne6 = $("<div/>", {"class":"row"});
-
-									var divMessageMaintenance = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderMessageMaintenance = $("<div/>", {"class":"page-header"});
-									var h4MessageMaintenance = $("<h4/>").text("Message Maintenance");
-
-									var divNumeroSupport = $("<div/>", {"class":"col-md-6"});
-									var pageHeaderNumeroSupport = $("<div/>", {"class":"page-header"});
-									var h4NumeroSupport = $("<h4/>").text("Numéro Support");
-									
-									// ID ET NOM
-									$(pageHeaderId).append(h4Id);
-									$(divId).append(pageHeaderId);
-									$(divId).append(jsonEquipement.id);
-									$(ligne1).append(divId);
-									
-									$(pageHeaderNom).append(h4Nom);
-									$(divNom).append(pageHeaderNom);
-									$(divNom).append(jsonEquipement.nom);
-									$(ligne1).append(divNom);
-									
-									// PERE ET UTILISATEUR
-									$(pageHeaderPere).append(h4Pere);
-									$(divPere).append(pageHeaderPere);
 									if (jsonEquipement.pere !== null) {
-										$(divPere).append(jsonEquipement.pere.nom);
+										$(ligne1).append(getTitleAndValue("Père", jsonEquipement.pere.nom));
 									} else {
-										$(divPere).append("Cet équipement ne dépend d'aucun autre.");
+										$(ligne1).append(getTitleAndValue("Père", "Cet équipement ne dépend d'aucun autre."));
 									}
-									$(ligne2).append(divPere);
 									
-									$(pageHeaderUtilisateur).append(h4Utilisateur);
-									$(divUtilisateur).append(pageHeaderUtilisateur);
-									$(divUtilisateur).append(jsonEquipement.utilisateur);
-									$(ligne2).append(divUtilisateur);
+									$(ligne2).append(getTitleAndValue("Utilisateur", jsonEquipement.utilisateur));
+									$(ligne2).append(getTitleAndValue("Etat Technique", jsonEquipement.etatTechnique.libelle));
+									$(ligne2).append(getTitleAndValue("Etat Fonctionnel", jsonEquipement.etatFonctionnel.libelle));
 									
-									// ETATTECHNIQUE ET ETATFONCTIONNEL
-									$(pageHeaderEtatTechnique).append(h4EtatTechnique);
-									$(divEtatTechnique).append(pageHeaderEtatTechnique);
-									$(divEtatTechnique).append(jsonEquipement.etatTechnique.libelle);
-									$(ligne3).append(divEtatTechnique);
-
-									$(pageHeaderEtatFonctionnel).append(h4EtatFonctionnel);
-									$(divEtatFonctionnel).append(pageHeaderEtatFonctionnel);
-									$(divEtatFonctionnel).append(jsonEquipement.etatFonctionnel.libelle);
-									$(ligne3).append(divEtatFonctionnel);
+									$(ligne3).append(getTitleAndValue("Type", jsonEquipement.type.libelle));
+									$(ligne3).append(getTitleAndValue("Fabricant", jsonEquipement.fabricant.nom));
+									$(ligne3).append(getTitleAndValue("Numéro Support", jsonEquipement.numeroSupport));
 									
-									// FABRICANT ET TYPE
-									$(pageHeaderType).append(h4Type);
-									$(divType).append(pageHeaderType);
-									$(divType).append(jsonEquipement.type.libelle);
-									$(ligne4).append(divType);
-
-									$(pageHeaderFabricant).append(h4Fabricant);
-									$(divFabricant).append(pageHeaderFabricant);
-									$(divFabricant).append(jsonEquipement.fabricant.nom);
-									$(ligne4).append(divFabricant);
-									
-									// ADRESSEIP ET ADRESSEPHYSIQUE
-									$(pageHeaderAdresseIp).append(h4AdresseIp);
-									$(divAdresseIp).append(pageHeaderAdresseIp);
-									$(divAdresseIp).append(jsonEquipement.adresseIp);
-									$(ligne5).append(divAdresseIp);
-
-									$(pageHeaderAdressePhysique).append(h4AdressePhysique);
-									$(divAdressePhysique).append(pageHeaderAdressePhysique);
-									$(divAdressePhysique).append(jsonEquipement.AdressePhysique);
-									$(ligne5).append(divAdressePhysique);
-
-									// MESSAGEMAINTENANCE ET NUMEROSUPPORT
-									$(pageHeaderMessageMaintenance).append(h4MessageMaintenance);
-									$(divMessageMaintenance).append(pageHeaderMessageMaintenance);
-									$(divMessageMaintenance).append(jsonEquipement.messageMaintenance);
-									$(ligne6).append(divMessageMaintenance);
-
-									$(pageHeaderNumeroSupport).append(h4NumeroSupport);
-									$(divNumeroSupport).append(pageHeaderNumeroSupport);
-									$(divNumeroSupport).append(jsonEquipement.numeroSupport);
-									$(ligne6).append(divNumeroSupport);
+									$(ligne4).append(getTitleAndValue("Adresse Ip", jsonEquipement.adresseIp));
+									$(ligne4).append(getTitleAndValue("Adresse Physique", jsonEquipement.adressePhysique));
+									$(ligne4).append(getTitleAndValue("Message Maintenance", jsonEquipement.messageMaintenance));
 									
 									$("#myModalBody").append(ligne1);
 									$("#myModalBody").append(ligne2);
 									$("#myModalBody").append(ligne3);
 									$("#myModalBody").append(ligne4);
-									$("#myModalBody").append(ligne5);
-									$("#myModalBody").append(ligne6);
 									
 									$(modal).find(".btn.btn-primary").click(function () {
 										$("#myModal").modal('hide');
@@ -534,6 +435,16 @@
 						});
 					}
 				});
+				
+				function getInputText(id, name, value, libelle) {
+					var label = $("<label/>", {"class": "control-label", "for": "id"}).text(libelle);
+					var input = $("<input/>", {"class": "form-control", "type": "text", "id": id, "name": name, "value": value});
+					var divFormGroup = $("<div/>", {"class": "form-group"});
+					
+					$(divFormGroup).append(label);
+					$(divFormGroup).append(input);
+					return divFormGroup;
+				}
 
 				function getEquipementForm(options) {
 					var defaults = {
@@ -549,11 +460,7 @@
 					};
 
 					var parameters = $.extend(defaults, options);
-
-					var labelId = $("<label/>", {"class": "control-label", "for": "id"}).text("Identifiant");
-					var inputId = $("<input/>", {"class": "form-control", "type": "text", "id": "id", "name": "id", "value": parameters.id, "pattern":"^[A-Z][A-Z0-9]{7}$", "required":"required"});
-					var divFormGroupId = $("<div/>", {"class": "form-group"});
-
+					console.log(parameters);
 					var labelType = $("<label/>", {"class": "control-label", "for": "type"}).text("Type");
 					var selectType = $("<select/>", {"class": "form-control", "id": "type", "name": "type"});
 					var divFormGroupType = $("<div/>", {"class": "form-group"});
@@ -571,7 +478,7 @@
 								for (var i = 0; i < jsonTypeEquipementList.length; ++i) {
 									var jsonTypeEquipement = jsonTypeEquipementList[i];
 									optionType = $("<option/>", {"value": jsonTypeEquipement.id}).text(jsonTypeEquipement.libelle);
-									if (parameters.type === jsonTypeEquipement.id) {
+									if (parameters.type.id === jsonTypeEquipement.id) {
 										$(optionType).attr("selected", "selected");
 									}
 									$(selectType).append(optionType);
@@ -597,7 +504,7 @@
 								for (var i = 0; i < jsonFabricantList.length; ++i) {
 									var jsonFabricant = jsonFabricantList[i];
 									optionFabricant = $("<option/>", {"value": jsonFabricant.id}).text(jsonFabricant.nom);
-									if (parameters.fabricant === jsonFabricant.id) {
+									if (parameters.fabricant.id === jsonFabricant.id) {
 										$(optionFabricant).attr("selected", "selected");
 									}
 									$(selectFabricant).append(optionFabricant);
@@ -625,7 +532,7 @@
 								for (var i = 0; i < jsonEquipementList.length; ++i) {
 									var jsonEquipement = jsonEquipementList[i];
 									optionPere = $("<option/>", {"value": jsonEquipement.id}).text(jsonEquipement.nom);
-									if (parameters.pere === jsonEquipement.id) {
+									if (parameters.pere.id === jsonEquipement.id) {
 										$(optionPere).attr("selected", "selected");
 									}
 									$(selectPere).append(optionPere);
@@ -634,34 +541,14 @@
 						}
 					});
 
-					var labelNom = $("<label/>", {"class": "control-label", "for": "nom"}).text("Nom");
-					var inputNom = $("<input/>", {"class": "form-control", "type": "text", "id": "nom", "name": "nom", "value": parameters.nom});
-					var divGroupNom = $("<div/>", {"class": "form-group"});
-
-					var labelAdresseIp = $("<label/>", {"class": "control-label", "for": "adresse_ip"}).text("Adresse Ip");
-					var inputAdresseIP = $("<input/>", {"class": "form-control", "type": "text", "id": "adresse_ip", "name": "adresse_ip", "value": parameters.adresseIp});
-					var divFormGroupAdresseIp = $("<div/>", {"class": "form-group"});
-
-					var labelAdressePhysique = $("<label/>", {"class": "control-label", "for": "adresse_physique"}).text("Adresse Physique");
-					var inputAdressePhysique = $("<input/>", {"class": "form-control", "type": "text", "id": "adresse_physique", "name": "adresse_physique", "value": parameters.adressePhysique});
-					var divFormGroupAdressePhysique = $("<div/>", {"class": "form-group"});
-
-					var labelUtilisateur = $("<label/>", {"class": "control-label", "for": "utilisateur"}).text("Utilisateur");
-					var inputUtilisateur = $("<input/>", {"class": "form-control", "type": "text", "id": "utilisateur", "name": "utilisateur", "value": parameters.utilisateur});
-					var divFormGroupUtilisateur = $("<div/>", {"class": "form-group"});
-
-					var labelNumeroSupport = $("<label/>", {"class": "control-label", "for": "numero_support"}).text("N° du support");
-					var inputNumeroSupport = $("<input/>", {"class": "form-control", "type": "text", "id": "numero_support", "name": "numero_support", "value": parameters.numeroSupport});
-					var divFormGroupNumeroSupport = $("<div/>", {"class": "form-group"});
-
 					if (parameters.id === null) {
 						var form = $("<form/>", {"method": "POST", "action": "<?php echo $url; ?>api/equipement"});
 					} else {
 						var form = $("<form/>", {"method": "POST", "action": "<?php echo $url; ?>api/equipement/" + parameters.id});
 					}
-					$(divFormGroupId).append(labelId);
-					$(divFormGroupId).append(inputId);
-					$(form).append(divFormGroupId);
+					$(form).append(getInputText("id", "id", parameters.id, "Identifiant"));
+					
+					// PAS TOUCHE
 					$(divFormGroupType).append(labelType);
 					$(divFormGroupType).append(selectType);
 					$(form).append(divFormGroupType);
@@ -671,21 +558,14 @@
 					$(divFormGroupPere).append(labelPere);
 					$(divFormGroupPere).append(selectPere);
 					$(form).append(divFormGroupPere);
-					$(divGroupNom).append(labelNom);
-					$(divGroupNom).append(inputNom);
-					$(form).append(divGroupNom);
-					$(divFormGroupAdresseIp).append(labelAdresseIp);
-					$(divFormGroupAdresseIp).append(inputAdresseIP);
-					$(form).append(divFormGroupAdresseIp);
-					$(divFormGroupAdressePhysique).append(labelAdressePhysique);
-					$(divFormGroupAdressePhysique).append(inputAdressePhysique);
-					$(form).append(divFormGroupAdressePhysique);
-					$(divFormGroupUtilisateur).append(labelUtilisateur);
-					$(divFormGroupUtilisateur).append(inputUtilisateur);
-					$(form).append(divFormGroupUtilisateur);
-					$(divFormGroupNumeroSupport).append(labelNumeroSupport);
-					$(divFormGroupNumeroSupport).append(inputNumeroSupport);
-					$(form).append(divFormGroupNumeroSupport);
+					// PAS TOUCHE
+					
+					$(form).append(getInputText("nom", "nom", parameters.nom, "Nom"));
+					$(form).append(getInputText("adresse_ip", "adresse_ip", parameters.adresseIp, "Adresse Ip"));
+					$(form).append(getInputText("adresse_physique", "adresse_physique", parameters.adressePhysique, "Adresse Physique"));
+					
+					$(form).append(getInputText("utilisateur", "utilisateur", parameters.utilisateur, "Utilisateur"));
+					$(form).append(getInputText("numero_support", "numero_support", parameters.numeroSupport, "Numéro Support"));
 
 					$(form).submit(function (e) {
 						e.preventDefault();
@@ -744,29 +624,10 @@
 								var jsonEquipements = json.content;
 								for (var i = 0; i < jsonEquipements.length; ++i) {
 									var jsonEquipement = jsonEquipements[i];
-									var li = $("<li/>", {"class": "list-group-item", "data-equipement-id": jsonEquipement.id, "data-etat-technique": jsonEquipement.etatTechnique, "data-etat-fonctionnel": jsonEquipement.etatFonctionnel});
-									var spanGlyphiconCheck = $("<span/>", {"class": "glyphicon glyphicon-check"});
-									var btnRead = $("<button/>", {"type": "button", "class": "btn btn-info btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "read", "data-toggle": "modal", "data-target": "#myModal", "data-size": "medium"});
-									var spanGlyphiconEdit = $("<span/>", {"class": "glyphicon glyphicon-edit"});
-									var btnUpdate = $("<button/>", {"type": "button", "class": "btn btn-warning btn-xs", "data-equipement-id": jsonEquipement.id, "data-operation": "update", "data-toggle": "modal", "data-target": "#myModal", "data-size": "large"});
-									var spanGlyphiconTrash = $("<span/>", {"class": "glyphicon glyphicon-trash"});
-									var btnDelete = $("<button/>", {"type": "button", "class": "btn btn-danger btn-xs btn-delete", "data-equipement-id": jsonEquipement.id, "data-operation": "delete", "data-toggle": "modal", "data-target": "#myModal", "data-size": "small"});
-									var divBtnGroup = $("<div/>", {"class": "btn-group pull-right", "role": "group", "aria-label": "Opération"});
-									$(btnRead).append(spanGlyphiconCheck);
-									$(divBtnGroup).append(btnRead);
-									$(btnUpdate).append(spanGlyphiconEdit);
-									$(divBtnGroup).append(btnUpdate);
-									$(btnDelete).append(spanGlyphiconTrash);
-									$(divBtnGroup).append(btnDelete);
-
-									$(li).append(divBtnGroup);
-									$(li).append(" " + jsonEquipement.id + " - " + jsonEquipement.nom);
-
-									$(ul).append(li);
+									
+									$(ul).append(jsonEquipement);
 								}
-
 								$("#equipement_list").append(ul);
-
 							}
 						}
 					});
@@ -824,7 +685,6 @@
 				initChangementEtatList();
 				initSSE();
 				initSSEChangementEtat();
-				console.log(window);
 			});
 		</script>
 	</body>
