@@ -35,6 +35,10 @@ class ChangementEtat {
 		return $this->etatTechnique;
 	}
 
+	/**
+	 * 
+	 * @return TypeChangement
+	 */
 	function getType() {
 		return $this->type;
 	}

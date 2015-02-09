@@ -55,6 +55,26 @@
 		<script src="<?php echo $url; ?>js/bootstrap.min.js"></script>
 		<script>
 			$(function () {
+				function heaveEquipement(equipementId, etatTechniqueId, messageMaintenance) {
+					if (messageMaintenance === null) {
+						var data = {"etat_technique_id":etatTechniqueId};
+					} else {
+						var data = {"etat_technique_id":etatTechniqueId, "message_maintenance":messageMaintenance};
+					}
+					$.ajax({
+						url: "<?php echo $url . "api/simulator/equipement/heave/"; ?>"+equipementId,
+						type: "POST",
+						data: data,
+						success: function (json) {
+							if (json.state !== "ok") {
+								alert("erreur sur heaveEquipement");
+							} else {
+								initEquipementList();
+							}
+						}
+					});
+				}
+				
 				function initEquipementList() {
 					$("#equipement_list").empty();
 					$.ajax({
@@ -66,21 +86,27 @@
 								alert(json.error);
 							} else {
 								var jsonEquipements = json.content;
+								console.log(jsonEquipements);
 								for (var i = 0; i < jsonEquipements.length; ++i) {
 									var jsonEquipement = jsonEquipements[i];
 
 									var h3Title = $("<h3/>", {"class": "panel-title"}).text(jsonEquipement.id + " - " + jsonEquipement.nom);
+									var dlEtats = $("<dl/>", {"class": "dl-horizontal"});
+									var dtEtatFonctionnel = $("<dt/>").text("Etat Fonctionnel");
+									var ddEtatFonctionnel = $("<dd/>").text(jsonEquipement.etatFonctionnel.libelle);
+									var dtEtatTechnique = $("<dt/>").text("Etat Technique");
+									var ddEtatTechnique = $("<dd/>").text(jsonEquipement.etatTechnique.libelle);
 									var panelHeading = $("<div/>", {"class": "panel-heading"});
 									var panelBody = $("<div/>", {"class": "panel-body"});
 									var panel = $("<div/>", {"class": "panel panel-default"});
 									var divColMd3 = $("<div/>", {"class": "col-md-3"});
 									var spanCaretEtatTechnique = $("<span/>", {"class":"caret"});
 									var btnToggleEtatTechnique = $("<button/>", {"type":"button","class":"btn btn-default dropdown-toggle","data-toggle":"dropdown","aria-expanded":"false"});
-									var btnEtatTechniquePanneMineure = $("<a/>", {"href":"#","data-etat-technique":"2","class":"btn_etat_technique"});
+									var btnEtatTechniquePanneMineure = $("<a/>", {"href":"#", "data-equipement":jsonEquipement.id, "data-etat-technique":"2", "class":"btn_etat_technique"});
 									var liEtatTechniquePanneMineure = $("<li/>");
-									var btnEtatTechniquePanneMajeure = $("<a/>", {"href":"#","data-etat-technique":"3","class":"btn_etat_technique"});
+									var btnEtatTechniquePanneMajeure = $("<a/>", {"href":"#", "data-equipement":jsonEquipement.id, "data-etat-technique":"3", "class":"btn_etat_technique"});
 									var liEtatTechniquePanneMajeure = $("<li/>");
-									var btnEtatTechniquePanneInconnue = $("<a/>", {"href":"#","data-etat-technique":"4","class":"btn_etat_technique"});
+									var btnEtatTechniquePanneInconnue = $("<a/>", {"href":"#", "data-equipement":jsonEquipement.id, "data-etat-technique":"4", "class":"btn_etat_technique"});
 									var liEtatTechniquePanneInconnue = $("<li/>");
 									var divider = $("<li/>", {"class":"divider"});
 									var btnEtatTechniqueFonctionnel = $("<a/>", {"href":"#","data-etat-technique":"1","class":"btn_etat_technique"});
@@ -97,10 +123,20 @@
 									var divBtnGroupFonctionnel = $("<div/>", {"class":"btn-group"});
 									var labelMessagePanne = $("<label/>", {"id":"lbl-"+jsonEquipement.id, "class":"control-label"}).text("Message de la panne");
 									var textareaMessagePanne = $("<textarea/>", {"id":"ta-"+jsonEquipement.id, "class":"form-control"});
+									if (jsonEquipement.messageMaintenance !== null) {
+										$(textareaMessagePanne).text(jsonEquipement.messageMaintenance);
+									}
 									var divFormGroup = $("<div/>", {"class":"form-group"});
 
 									$(divFormGroup).append(labelMessagePanne);
 									$(divFormGroup).append(textareaMessagePanne);
+									
+									$(dlEtats).append(dtEtatFonctionnel);
+									$(dlEtats).append(ddEtatFonctionnel);
+									$(dlEtats).append(dtEtatTechnique);
+									$(dlEtats).append(ddEtatTechnique);
+									
+									$(panelBody).append(dlEtats);
 									$(panelBody).append(divFormGroup);
 									$(btnToggleEtatTechnique).text("Modifier l'état technique ");
 									$(btnToggleEtatTechnique).append(spanCaretEtatTechnique);
@@ -136,6 +172,44 @@
 									$(panel).append(panelBody);
 									$(divColMd3).append(panel);
 									$("#equipement_list").append(divColMd3);
+									
+									// =========================================
+									// ETAT TECHNIQUE
+									// =========================================
+									$(btnEtatTechniquePanneMineure).click(function(e) {
+										e.preventDefault();
+										var taVal = $(this).parent().parent().parent().parent().find("textarea").val();
+										var messageMaintenance = taVal !== "" ? taVal : null;
+										heaveEquipement(this.dataset.equipement, this.dataset.etatTechnique, messageMaintenance);
+									});
+									$(btnEtatTechniquePanneMajeure).click(function(e) {
+										e.preventDefault();
+										var taVal = $(this).parent().parent().parent().parent().find("textarea").val();
+										var messageMaintenance = taVal !== "" ? taVal : null;
+										heaveEquipement(this.dataset.equipement, this.dataset.etatTechnique, messageMaintenance);
+									});
+									$(btnEtatTechniquePanneInconnue).click(function(e) {
+										e.preventDefault();
+										var taVal = $(this).parent().parent().parent().parent().find("textarea").val();
+										var messageMaintenance = taVal !== "" ? taVal : null;
+										heaveEquipement(this.dataset.equipement, this.dataset.etatTechnique, messageMaintenance);
+									});
+									$(btnEtatTechniqueFonctionnel).click(function(e) {
+										e.preventDefault();
+										var taVal = $(this).parent().parent().parent().parent().find("textarea").val();
+										var messageMaintenance = taVal !== "" ? taVal : null;
+										heaveEquipement(this.dataset.equipement, this.dataset.etatTechnique, messageMaintenance);
+									});
+									
+									// =========================================
+									// ETAT FONCTIONNEL
+									// =========================================
+									$(btnEtatFonctionneAllumer).click(function() {
+
+									});
+									$(btnEtatFonctionnelEteindre).click(function() {
+
+									});
 								}
 							}
 						}
@@ -143,6 +217,20 @@
 				}
 				$("#btn_refresh").click(function () {
 					initEquipementList();
+				});
+				$("#btn_reboot").click(function () {
+					$.ajax({
+						url: "<?php echo $url . "api/simulator/equipement/reboot"; ?>",
+						type: "POST",
+						//data: {"etat_technique_id":etatTechniqueId},
+						success: function (json) {
+							if (json.state !== "ok") {
+								alert("erreur sur reboot");
+							} else {
+								initEquipementList();
+							}
+						}
+					});
 				});
 				
 				initEquipementList();

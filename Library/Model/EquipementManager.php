@@ -119,6 +119,7 @@ class EquipementManager {
 	}
 
 	public function insert(Equipement $equipement) {
+		
 		$requete = $this->pdo->prepare("INSERT INTO equipement (id, pere, etat_technique, etat_fonctionnel, fabricant, type, nom, adresse_ip, adresse_physique, message_maintenance, numero_support, utilisateur) VALUES(:id, :pere, :etatTechnique, :etatFonctionnel, :fabricant, :type, :nom, :adresseIp, :adressePhysique, :messageMaintenance, :numeroSupport, :utilisateur)");
 		$requete->bindValue(':id', $equipement->getId());
 		$requete->bindValue(':pere', $equipement->getPere());
@@ -132,7 +133,12 @@ class EquipementManager {
 		$requete->bindValue(':messageMaintenance', $equipement->getMessageMaintenance());
 		$requete->bindValue(':numeroSupport', $equipement->getNumeroSupport());
 		$requete->bindValue(':utilisateur', $equipement->getUtilisateur());
-		return $requete->execute();
+		
+		if ($requete->execute()) {
+			return $equipement->getId();
+		} else {
+			return null;
+		}
 	}
 
 	public function update(Equipement $equipement) {

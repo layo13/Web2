@@ -3,56 +3,65 @@
 namespace Library\Controller;
 
 use Library\Entity\Equipement;
+use Library\Entity\ChangementEtat;
+use Library\Model\ChangementEtatManager;
 use Library\Model\EquipementManager;
 use Library\Model\EtatTechniqueManager;
 use Library\Model\EtatFonctionnelManager;
 use Library\Model\FabricantManager;
+use Library\Model\TypeChangementManager;
 use Library\Model\TypeEquipementManager;
 use Library\PDOProvider;
 
 class EquipementController {
 
 	public function readUnique($id) {
-		header('Content-Type: application/json');
+		header('Content-Type: application/json; Charset=utf-8');
 
 		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 		$equipement = $equipementManager->getUnique($id);
-
-		$jsonEquipement = array(
-			'id' => $equipement->getId(),
-			'pere' => $equipement->getPere() !== null ? array(
+		if ($equipement !== null) {
+			$jsonEquipement = array(
+				'id' => $equipement->getId(),
+				'pere' => $equipement->getPere() !== null ? array(
 					'id' => $equipement->getPere()->getId(),
 					'nom' => $equipement->getPere()->getNom()
-				) : null,
-			'etatTechnique' => array(
-				'id' => $equipement->getEtatTechnique()->getId(),
-				'libelle' => $equipement->getEtatTechnique()->getLibelle(),
-			),
-			'etatFonctionnel' => array(
-				'id' => $equipement->getEtatFonctionnel()->getId(),
-				'libelle' => $equipement->getEtatFonctionnel()->getLibelle(),
-			),
-			'fabricant' => array(
-				'id' => $equipement->getFabricant()->getId(),
-				'nom' => $equipement->getFabricant()->getNom(),
-			),
-			'type' => array(
-				'id' => $equipement->getType()->getId(),
-				'libelle' => $equipement->getType()->getLibelle(),
-			),
-			'nom' => $equipement->getNom(),
-			'adresseIp' => $equipement->getAdresseIp(),
-			'adressePhysique' => $equipement->getAdressePhysique(),
-			'messageMaintenance' => $equipement->getMessageMaintenance(),
-			'numeroSupport' => $equipement->getNumeroSupport(),
-			'utilisateur' => $equipement->getUtilisateur()
-		);
-
-		$jsonResponse = array(
-			"state" => "ok",
-			"content" => $jsonEquipement
-		);
-		return json_encode($jsonResponse);
+						) : null,
+				'etatTechnique' => array(
+					'id' => $equipement->getEtatTechnique()->getId(),
+					'libelle' => $equipement->getEtatTechnique()->getLibelle(),
+				),
+				'etatFonctionnel' => array(
+					'id' => $equipement->getEtatFonctionnel()->getId(),
+					'libelle' => $equipement->getEtatFonctionnel()->getLibelle(),
+				),
+				'fabricant' => array(
+					'id' => $equipement->getFabricant()->getId(),
+					'nom' => $equipement->getFabricant()->getNom(),
+				),
+				'type' => array(
+					'id' => $equipement->getType()->getId(),
+					'libelle' => $equipement->getType()->getLibelle(),
+				),
+				'nom' => $equipement->getNom(),
+				'adresseIp' => $equipement->getAdresseIp(),
+				'adressePhysique' => $equipement->getAdressePhysique(),
+				'messageMaintenance' => $equipement->getMessageMaintenance(),
+				'numeroSupport' => $equipement->getNumeroSupport(),
+				'utilisateur' => $equipement->getUtilisateur()
+			);
+			$jsonResponse = array(
+				"state" => "ok",
+				"content" => $jsonEquipement
+			);
+			return json_encode($jsonResponse);
+		} else {
+			$jsonResponse = array(
+				"state" => "ok",
+				"content" => null
+			);
+			return json_encode($jsonResponse);
+		}
 	}
 
 	public function read() {
@@ -68,7 +77,7 @@ class EquipementController {
 					'id' => $equipement->getPere()->getId(),
 					'nom' => $equipement->getPere()->getNom(),
 					'type' => $equipement->getPere()->getType()
-				) : null,
+						) : null,
 				'etatTechnique' => array(
 					'id' => $equipement->getEtatTechnique()->getId(),
 					'libelle' => $equipement->getEtatTechnique()->getLibelle(),
@@ -104,6 +113,8 @@ class EquipementController {
 		$jsonResponse = array();
 
 		$equipementManager = new EquipementManager(PDOProvider::getInstance());
+		$typeChangementManager = new TypeChangementManager(PDOProvider::getInstance());
+		$changementEtatManager = new ChangementEtatManager(PDOProvider::getInstance());
 
 		$id = $_POST['id'];
 		$type = $_POST['type'];
@@ -130,8 +141,17 @@ class EquipementController {
 		$equipement->setUtilisateur($utilisateur);
 		$equipement->setNumeroSupport($numeroSupport);
 
-		if ($equipementManager->insert($equipement)) {
-			$jsonResponse["state"] = "ok";
+		$ok = $equipementManager->insert($equipement);
+		if ($ok !== NULL) {
+
+			$changementEtat = new ChangementEtat();
+			$changementEtat->setEquipement($equipement);
+			$changementEtat->setType($typeChangementManager->getUnique(1)); // Ajoute de materiel
+			if ($changementEtatManager->insert($changementEtat)) {
+				$jsonResponse["state"] = "ok";
+			} else {
+				$jsonResponse["state"] = "ko";
+			}
 		} else {
 			$jsonResponse["state"] = "ko";
 		}
@@ -144,7 +164,7 @@ class EquipementController {
 		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 		$fabricantManager = new FabricantManager(PDOProvider::getInstance());
 		$typeEquipementManager = new TypeEquipementManager(PDOProvider::getInstance());
-		
+
 		$equipement = $equipementManager->getUnique($oldId);
 
 		$id = $_POST['id'];
@@ -180,7 +200,7 @@ class EquipementController {
 	}
 
 	public function delete($id) {
-		header('Content-Type: application/json');
+		header('Content-Type: application/json; Charset=utf-8');
 
 		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 		if ($equipementManager->delete($id)) {
@@ -192,22 +212,44 @@ class EquipementController {
 	}
 
 	public function rebootPark() {
-		
-	}
-
-	public function heaveMaterial($id, $etatTechniqueId) {
-		var_dump($id, $etatTechniqueId);
 		$equipementManager = new EquipementManager(PDOProvider::getInstance());
 		$etatTechniqueManager = new EtatTechniqueManager(PDOProvider::getInstance());
 		$etatFonctionnelManager = new EtatFonctionnelManager(PDOProvider::getInstance());
-		
+
+		$equipementList = $equipementManager->get();
+		$etatTechnique = $etatTechniqueManager->getUnique(1);
+		$etatFonctionnel = $etatFonctionnelManager->getUnique(1);
+
+		foreach ($equipementList as $equipement) {
+			$equipement->setEtatTechnique($etatTechnique);
+			$equipement->setEtatFonctionnel($etatFonctionnel);
+			$equipement->setMessageMaintenance($messageMaintenance);
+
+			$ok = $equipementManager->update($equipement);
+			if ($ok === false) {
+				return $ok;
+			}
+		}
+		return true;
+	}
+
+	public function heaveMaterial($id, $etatTechniqueId, $messageMaintenance = null) {
+
+		$changementEtatManager = new ChangementEtatManager(PDOProvider::getInstance());
+		$equipementManager = new EquipementManager(PDOProvider::getInstance());
+		$etatTechniqueManager = new EtatTechniqueManager(PDOProvider::getInstance());
+		$etatFonctionnelManager = new EtatFonctionnelManager(PDOProvider::getInstance());
+
 		$equipement = $equipementManager->getUnique($id);
-		var_dump($equipement);
+		$etatFonctionnel = $etatFonctionnelManager->getUnique(4);
+
 		// Mise en panne
 		if ($etatTechniqueId !== 0) { // C'est le pere, on change l'etat technique
 			$etatTechnique = $etatTechniqueManager->getUnique($etatTechniqueId);
-			
+
 			$equipement->setEtatTechnique($etatTechnique);
+			$equipement->setEtatFonctionnel($etatFonctionnel);
+			$equipement->setMessageMaintenance($messageMaintenance);
 
 			$ok = $equipementManager->update($equipement);
 			if ($ok === false) {
@@ -217,7 +259,7 @@ class EquipementController {
 			$equipement->setEtatFonctionnel($etatFonctionnelManager->getUnique(4));
 			return $equipementManager->update($equipement);
 		}
-		
+
 		// Pareil pour les enfants
 		$enfants = $equipementManager->getByPere($id);
 		foreach ($enfants as $enfant) {
@@ -226,5 +268,7 @@ class EquipementController {
 				return $ok;
 			}
 		}
+		return true;
 	}
+
 }

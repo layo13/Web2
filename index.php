@@ -52,11 +52,23 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	foreach ($changementEtatList as $changementEtat) {
 		$jsonChangementEtatList[] = array(
 			'id' => $changementEtat->getId(),
+			'equipement' => array(
+				"id" => $changementEtat->getEquipement()->getId(),
+				"nom" => $changementEtat->getEquipement()->getNom(),
+			),
+			'etatFonctionnel' => $changementEtat->getEtatFonctionnel() !== null ? array(
+				"id" => $changementEtat->getEtatFonctionnel()->getId(),
+				"libelle" => $changementEtat->getEtatFonctionnel()->getLibelle()
+			) : null,
+			'etatTechnique' => $changementEtat->getEtatTechnique() !== null ? array(
+				"id" => $changementEtat->getEtatTechnique()->getId(),
+				"libelle" => $changementEtat->getEtatTechnique()->getLibelle()
+			) : null,
+			'type' => array(
+				"id"=>$changementEtat->getType()->getId(),
+				"libelle"=>$changementEtat->getType()->getLibelle()
+			),
 			'date' => $changementEtat->getDate(),
-			'equipement' => $changementEtat->getEquipement(),
-			'etatFonctionnel' => $changementEtat->getEtatFonctionnel(),
-			'etatTechnique' => $changementEtat->getEtatTechnique(),
-			'type' => $changementEtat->getType(),
 			'message' => $changementEtat->getMessage()
 		);
 	}
@@ -68,7 +80,7 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	echo "data: " . json_encode($jsonResponse) . "\n\n";
 	flush();
 } else if (preg_match("`^/api/equipement$`", $requestUri, $matches) && $requestMethod == "GET") {
-	header('Content-Type: application/json');
+	header('Content-Type: application/json; Charset=utf-8');
 	$equipementController = new Library\Controller\EquipementController();
 	echo $equipementController->read();
 } else if (preg_match("`^/api/equipement/([a-z0-9]+)$`i", $requestUri, $matches) && $requestMethod == "GET") {
@@ -87,7 +99,7 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	$id = $matches[1];
 	echo $equipementController->delete($id);
 } else if (preg_match("`^/api/type_equipement$`", $requestUri, $matches) && $requestMethod == "GET") {
-	header('Content-Type: application/json');
+	header('Content-Type: application/json; Charset=utf-8');
 	$typeEquipementManager = new \Library\Model\TypeEquipementManager($pdo);
 	$typeEquipementList = $typeEquipementManager->get();
 
@@ -104,12 +116,28 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 		"content" => $jsonTypeEquipementList
 	);
 	echo json_encode($jsonResponse);
-} else if (preg_match("`^/api/simulator/equipement/heave/([a-zA-Z0-9]+)$`", $requestUri, $matches) && $requestMethod == "GET") {
+} else if (preg_match("`^/api/simulator/equipement/heave/([a-zA-Z0-9]+)$`", $requestUri, $matches) && $requestMethod == "POST") {
+	header('Content-Type: application/json; Charset=UTF-8');
 	$equipementController = new Library\Controller\EquipementController();
 	$id = $matches[1];
-	echo $equipementController->heaveMaterial($id, 3);
+	$messageMaintenance = isset($_POST["message_maintenance"]) ? $_POST["message_maintenance"] : null;
+	if ($equipementController->heaveMaterial($id, $_POST["etat_technique_id"], $messageMaintenance)) {
+		$state = "ok";
+	} else {
+		$state = "ko";
+	}
+	echo json_encode(array("state" => $state));
+} else if (preg_match("`^/api/simulator/equipement/reboot$`", $requestUri, $matches) && $requestMethod == "POST") {
+	header('Content-Type: application/json; Charset=UTF-8');
+	$equipementController = new Library\Controller\EquipementController();
+	if ($equipementController->rebootPark()) {
+		$state = "ok";
+	} else {
+		$state = "ko";
+	}
+	echo json_encode(array("state" => $state));
 } else if (preg_match("`^/api/fabricant$`", $requestUri, $matches) && $requestMethod == "GET") {
-	header('Content-Type: application/json');
+	header('Content-Type: application/json; Charset=utf-8');
 	$fabricantManager = new \Library\Model\FabricantManager($pdo);
 	$fabricantList = $fabricantManager->get();
 
@@ -154,10 +182,22 @@ if (preg_match("`^/$`", $requestUri, $matches)) {
 	foreach ($changementEtatList as $changementEtat) {
 		$jsonChangementEtatList[] = array(
 			'id' => $changementEtat->getId(),
-			'equipement' => $changementEtat->getEquipement(),
-			'etatFonctionnel' => $changementEtat->getEtatFonctionnel(),
-			'etatTechnique' => $changementEtat->getEtatTechnique(),
-			'type' => $changementEtat->getType(),
+			'equipement' => array(
+				"id" => $changementEtat->getEquipement()->getId(),
+				"nom" => $changementEtat->getEquipement()->getNom(),
+			),
+			'etatFonctionnel' => $changementEtat->getEtatFonctionnel() !== null ? array(
+				"id" => $changementEtat->getEtatFonctionnel()->getId(),
+				"libelle" => $changementEtat->getEtatFonctionnel()->getLibelle()
+			) : null,
+			'etatTechnique' => $changementEtat->getEtatTechnique() !== null ? array(
+				"id" => $changementEtat->getEtatTechnique()->getId(),
+				"libelle" => $changementEtat->getEtatTechnique()->getLibelle()
+			) : null,
+			'type' => array(
+				"id"=>$changementEtat->getType()->getId(),
+				"libelle"=>$changementEtat->getType()->getLibelle()
+			),
 			'date' => $changementEtat->getDate(),
 			'message' => $changementEtat->getMessage()
 		);

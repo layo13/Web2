@@ -144,7 +144,8 @@ CREATE  INDEX I_FK_EQUIPEMENT_type_equipement
 
 ALTER TABLE changement_etat 
   ADD FOREIGN KEY FK_CHANGEMENT_ETAT_EQUIPEMENT (equipement)
-      REFERENCES equipement (id) ;
+      REFERENCES equipement (id) ON DELETE CASCADE ON UPDATE CASCADE ;
+
 
 
 ALTER TABLE changement_etat 

@@ -5,12 +5,11 @@
         <group>
             <file>file:/C:/wamp/www/Web2/Library/Model/ChangementEtatManager.php</file>
             <file>file:/C:/wamp/www/Web2/views/simulator.php</file>
-            <file>file:/C:/wamp/www/Web2/test.svg</file>
+            <file>file:/C:/wamp/www/Web2/Library/Model/EtatTechniqueManager.php</file>
             <file>file:/C:/wamp/www/Web2/db.sql</file>
-            <file>file:/C:/wamp/www/Web2/Library/Entity/Equipement.php</file>
             <file>file:/C:/wamp/www/Web2/Library/Controller/EquipementController.php</file>
             <file>file:/C:/wamp/www/Web2/views/main.php</file>
-            <file>file:/C:/wamp/www/Web2/Library/Entity/ChangementEtat.php</file>
+            <file>file:/C:/wamp/www/Web2/Library/Model/TypeChangementManager.php</file>
             <file>file:/C:/wamp/www/Web2/Library/Model/EquipementManager.php</file>
             <file>file:/C:/wamp/www/Web2/index.php</file>
         </group>
