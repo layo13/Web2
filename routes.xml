@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes>
+    <route name="home" url="/" module="Client" action="home" />
+    <route name="simulator" url="/simulator" module="Client" action="simulator" />
+	<!-- EQUIPEMENT -->
+    <route name="sse_equipement" url="/sse/equipement" module="Equipement" action="sse" />
+    <route name="read_equipement" url="/api/equipement" module="Equipement" action="read" />
+    <route name="create_equipement" url="/api/equipement" method="POST" module="Equipement" action="create" />
+    <route name="update_equipement" url="/api/equipement/{id}" method="POST" module="Equipement" action="update">
+		<param name="id" pattern="[A-Z0-9]+" />
+	</route>
+    <route name="delete_equipement" url="/api/equipement/{id}" method="DELETE" module="Equipement" action="delete">
+		<param name="id" pattern="[A-Z0-9]+" />
+	</route>
+    <route name="read_unique_equipement" url="/api/equipement/{id}" module="Equipement" action="readUnique">
+		<param name="id" pattern="[A-Z0-9]+" />
+	</route>
+	<!-- SIMULATOR -->
+	<route name="heave_equipement" url="/api/simulator/equipement/heave/{id}" method="POST" module="Equipement" action="heave">
+		<param name="id" pattern="[A-Z0-9]+" />
+	</route>
+    <route name="reboot_park" url="/api/simulator/equipement/reboot" method="POST" module="Equipement" action="reboot" />
+	<!-- CHANGEMENT ETAT -->
+    <route name="sse_changement_etat" url="/sse/changement-etat" module="ChangementEtat" action="sse" />
+    <route name="read_changement_etat" url="/api/changement-etat" module="ChangementEtat" action="read" />
+	<!-- TYPE EQUIPEMENT -->
+    <route name="read_type_equipement" url="/api/type-equipement" module="TypeEquipement" action="read" />
+	<!-- FABRICANT -->
+    <route name="read_fabricant" url="/api/fabricant" module="Fabricant" action="read" />
+</routes>

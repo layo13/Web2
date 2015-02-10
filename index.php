@@ -25,188 +25,31 @@ $requestMethod = $_SERVER["REQUEST_METHOD"];
 
 //var_dump($requestUri, $requestMethod);
 
-$pdo = \Library\PDOProvider::getInstance();
+use Library\Router;
+use Library\Route;
 
-if (preg_match("`^/$`", $requestUri, $matches)) {
-	require_once(__DIR__ . '/views/main.php');
-} else if (preg_match("`^/simulator$`", $requestUri, $matches)) {
-	require_once(__DIR__ . '/views/simulator.php');
-} else if (preg_match("`^/sse/equipement$`", $requestUri, $matches)) {
-	header('Content-Type: text/event-stream');
-	header('Cache-Control: no-cache');
+$doc = new DOMDocument("1.0", "UTF-8");
+$doc->load(__DIR__ . "/routes.xml");
+$router = new Router();
 
-	$equipementController = new Library\Controller\EquipementController();
-	
-	$data = $equipementController->read();
-	echo "data: {$data}\n\n";
-	flush();
-} else if (preg_match("`^/sse/changement-etat`", $requestUri, $matches)) {
-	header('Content-Type: text/event-stream');
-	header('Cache-Control: no-cache');
+foreach ($doc->getElementsByTagName("route") as $domRoute) {
+	$route = new Route($domRoute);
+	$router->addRoute($route);
+}
 
-	$changementEtatManager = new \Library\Model\ChangementEtatManager($pdo);
-	$changementEtatList = $changementEtatManager->get();
+$vars = array();
+$matchedRoute = $router->getMatchedRoute($requestUri, $requestMethod, $vars);
+if ($matchedRoute !== null) {
+	$controllerName = "Library\\Controller\\" . $matchedRoute->getModule() . "Controller";
+	$action = $matchedRoute->getAction() . "Action";
+	$controller = new $controllerName();
+	$return = call_user_func_array(array($controller, $action), $vars);
 
-	$jsonChangementEtatList = array();
-	/* @var $changementEtat \Library\Entity\ChangementEtat */
-	foreach ($changementEtatList as $changementEtat) {
-		$jsonChangementEtatList[] = array(
-			'id' => $changementEtat->getId(),
-			'equipement' => array(
-				"id" => $changementEtat->getEquipement()->getId(),
-				"nom" => $changementEtat->getEquipement()->getNom(),
-			),
-			'etatFonctionnel' => $changementEtat->getEtatFonctionnel() !== null ? array(
-				"id" => $changementEtat->getEtatFonctionnel()->getId(),
-				"libelle" => $changementEtat->getEtatFonctionnel()->getLibelle()
-			) : null,
-			'etatTechnique' => $changementEtat->getEtatTechnique() !== null ? array(
-				"id" => $changementEtat->getEtatTechnique()->getId(),
-				"libelle" => $changementEtat->getEtatTechnique()->getLibelle()
-			) : null,
-			'type' => array(
-				"id"=>$changementEtat->getType()->getId(),
-				"libelle"=>$changementEtat->getType()->getLibelle()
-			),
-			'date' => $changementEtat->getDate(),
-			'message' => $changementEtat->getMessage()
-		);
-	}
-	$jsonResponse = array(
-		"state" => "ok",
-		"content" => $jsonChangementEtatList
-	);
-	
-	echo "data: " . json_encode($jsonResponse) . "\n\n";
-	flush();
-} else if (preg_match("`^/api/equipement$`", $requestUri, $matches) && $requestMethod == "GET") {
-	header('Content-Type: application/json; Charset=utf-8');
-	$equipementController = new Library\Controller\EquipementController();
-	echo $equipementController->read();
-} else if (preg_match("`^/api/equipement/([a-z0-9]+)$`i", $requestUri, $matches) && $requestMethod == "GET") {
-	$id = $matches[1];
-	$equipementController = new Library\Controller\EquipementController();
-	echo $equipementController->readUnique($id);
-} else if (preg_match("`^/api/equipement$`", $requestUri, $matches) && $requestMethod == "POST") {
-	$equipementController = new Library\Controller\EquipementController();
-	echo $equipementController->create();
-} else if (preg_match("`^/api/equipement/([a-z0-9]+)$`i", $requestUri, $matches) && $requestMethod == "POST") {
-	$equipementController = new Library\Controller\EquipementController();
-	$id = $matches[1];
-	echo $equipementController->update($id);
-} else if (preg_match("`^/api/equipement/([a-z0-9]+)$`i", $requestUri, $matches) && $requestMethod == "DELETE") {
-	$equipementController = new Library\Controller\EquipementController();
-	$id = $matches[1];
-	echo $equipementController->delete($id);
-} else if (preg_match("`^/api/type_equipement$`", $requestUri, $matches) && $requestMethod == "GET") {
-	header('Content-Type: application/json; Charset=utf-8');
-	$typeEquipementManager = new \Library\Model\TypeEquipementManager($pdo);
-	$typeEquipementList = $typeEquipementManager->get();
-
-	$jsonTypeEquipementList = array();
-	/* @var $equipement \Library\Entity\TypeEquipement */
-	foreach ($typeEquipementList as $typeEquipement) {
-		$jsonTypeEquipementList[] = array(
-			'id' => $typeEquipement->getId(),
-			'libelle' => $typeEquipement->getLibelle()
-		);
-	}
-	$jsonResponse = array(
-		"state" => "ok",
-		"content" => $jsonTypeEquipementList
-	);
-	echo json_encode($jsonResponse);
-} else if (preg_match("`^/api/simulator/equipement/heave/([a-zA-Z0-9]+)$`", $requestUri, $matches) && $requestMethod == "POST") {
-	header('Content-Type: application/json; Charset=UTF-8');
-	$equipementController = new Library\Controller\EquipementController();
-	$id = $matches[1];
-	$messageMaintenance = isset($_POST["message_maintenance"]) ? $_POST["message_maintenance"] : null;
-	if ($equipementController->heaveMaterial($id, $_POST["etat_technique_id"], $messageMaintenance)) {
-		$state = "ok";
+	if (is_null($return)) {
+		exit;
 	} else {
-		$state = "ko";
+		exit($return);
 	}
-	echo json_encode(array("state" => $state));
-} else if (preg_match("`^/api/simulator/equipement/reboot$`", $requestUri, $matches) && $requestMethod == "POST") {
-	header('Content-Type: application/json; Charset=UTF-8');
-	$equipementController = new Library\Controller\EquipementController();
-	if ($equipementController->rebootPark()) {
-		$state = "ok";
-	} else {
-		$state = "ko";
-	}
-	echo json_encode(array("state" => $state));
-} else if (preg_match("`^/api/fabricant$`", $requestUri, $matches) && $requestMethod == "GET") {
-	header('Content-Type: application/json; Charset=utf-8');
-	$fabricantManager = new \Library\Model\FabricantManager($pdo);
-	$fabricantList = $fabricantManager->get();
-
-	$jsonFabricantList = array();
-	/* @var $fabricant \Library\Entity\Fabricant */
-	foreach ($fabricantList as $fabricant) {
-		$jsonFabricantList[] = array(
-			'id' => $fabricant->getId(),
-			'nom' => $fabricant->getNom()
-		);
-	}
-	$jsonResponse = array(
-		"state" => "ok",
-		"content" => $jsonFabricantList
-	);
-	echo json_encode($jsonResponse);
-} else if (preg_match("`^/api/etat_fonctionnel`", $requestUri, $matches) && $requestMethod == "GET") {
-	header('Content-Type: application/json; Charset=UTF-8');
-	$etatFonctionnelManager = new \Library\Model\EtatFonctionnelManager($pdo);
-	$etatFonctionnelList = $etatFonctionnelManager->get();
-
-	$jsonEtatFonctionnelList = array();
-	/* @var $equipement \Library\Entity\EtatFonctionnel */
-	foreach ($etatFonctionnelList as $etatFonctionnel) {
-		$jsonEtatFonctionnelList[] = array(
-			'id' => $etatFonctionnel->getId(),
-			'libelle' => $etatFonctionnel->getLibelle()
-		);
-	}
-	$jsonResponse = array(
-		"state" => "ok",
-		"content" => $jsonEtatFonctionnelList
-	);
-	echo json_encode($jsonResponse);
-} else if (preg_match("`^/api/changement-etat`", $requestUri, $matches) && $requestMethod == "GET") {
-	header('Content-Type: application/json; Charset=UTF-8');
-	$changementEtatManager = new \Library\Model\ChangementEtatManager($pdo);
-	$changementEtatList = $changementEtatManager->get();
-
-	$jsonChangementEtatList = array();
-	/* @var $changementEtat \Library\Entity\ChangementEtat */
-	foreach ($changementEtatList as $changementEtat) {
-		$jsonChangementEtatList[] = array(
-			'id' => $changementEtat->getId(),
-			'equipement' => array(
-				"id" => $changementEtat->getEquipement()->getId(),
-				"nom" => $changementEtat->getEquipement()->getNom(),
-			),
-			'etatFonctionnel' => $changementEtat->getEtatFonctionnel() !== null ? array(
-				"id" => $changementEtat->getEtatFonctionnel()->getId(),
-				"libelle" => $changementEtat->getEtatFonctionnel()->getLibelle()
-			) : null,
-			'etatTechnique' => $changementEtat->getEtatTechnique() !== null ? array(
-				"id" => $changementEtat->getEtatTechnique()->getId(),
-				"libelle" => $changementEtat->getEtatTechnique()->getLibelle()
-			) : null,
-			'type' => array(
-				"id"=>$changementEtat->getType()->getId(),
-				"libelle"=>$changementEtat->getType()->getLibelle()
-			),
-			'date' => $changementEtat->getDate(),
-			'message' => $changementEtat->getMessage()
-		);
-	}
-	$jsonResponse = array(
-		"state" => "ok",
-		"content" => $jsonChangementEtatList
-	);
-	echo json_encode($jsonResponse);
 } else {
 	header('HTTP/1.0 404 Not Found');
 	require("404.php");
