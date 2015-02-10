@@ -46,7 +46,7 @@ if ($matchedRoute !== null) {
 	$return = call_user_func_array(array($controller, $action), $vars);
 
 	if (is_null($return)) {
-		exit;
+		throw new RuntimeException("L'action $action du contrôleur $controllerName ne retourne aucun contenu.");
 	} else {
 		exit($return);
 	}

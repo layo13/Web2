@@ -20,8 +20,13 @@ class EquipementController {
 		header('Cache-Control: no-cache');
 
 		$data = $this->read();
-		echo "data: {$data}\n\n";
-		flush();
+		return "data: {$data}\n\n";
+		
+		/* 
+		 * AVANT
+		 * echo "data: {$data}\n\n";
+		 * flush();
+		 */
 	}
 
 	public function readAction() {

@@ -9,9 +9,13 @@ class ChangementEtatController {
 		header('Cache-Control: no-cache');
 
 		$data = $this->read();
-		
-		echo "data: {$data}\n\n";
-		flush();
+		return "data: {$data}\n\n";
+
+		/*
+		 * AVANT
+		 * echo "data: {$data}\n\n";
+		 * flush();
+		 */
 	}
 	
 	public function readAction() {
@@ -19,7 +23,7 @@ class ChangementEtatController {
 		return $this->read();
 	}
 
-	public function read() {
+	private function read() {
 		$changementEtatManager = new \Library\Model\ChangementEtatManager(\Library\PDOProvider::getInstance());
 		$changementEtatList = $changementEtatManager->get();
 

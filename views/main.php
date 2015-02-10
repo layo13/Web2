@@ -254,10 +254,10 @@
 
 				function initSSEEquipement() {
 					if (typeof (EventSource) !== "undefined") {
-						var source = new EventSource("<?php echo $url . "sse/equipement"; ?>");
-						source.onmessage = function (event) {
+						var sourceEquipement = new EventSource("<?php echo $url . "sse/equipement"; ?>");
+						sourceEquipement.onmessage = function (event) {
 							var json = JSON.parse(event.data);
-							console.log("initSSEEquipement", json);
+							//console.log("initSSEEquipement", json);
 							if (json.state === "ok") {
 								var jsonEquipementList = json.content;
 								addNewEquipement(jsonEquipementList, removeOldEquipement);
@@ -269,8 +269,9 @@
 				}
 				function initSSEChangementEtat() {
 					if (typeof (EventSource) !== "undefined") {
-						var source = new EventSource("<?php echo $url . "sse/changement-etat"; ?>");
-						source.onmessage = function (event) {
+						var sourceChangementEtat = new EventSource("<?php echo $url . "sse/changement-etat"; ?>");
+						console.log(sourceChangementEtat);
+						sourceChangementEtat.onmessage = function (event) {
 							var json = JSON.parse(event.data);
 							console.log("initSSEChangementEtat", json);
 							if (json.state === "ok") {
@@ -733,7 +734,7 @@
 						type: "GET",
 						//data: $this.serialize(),
 						success: function (json) {
-							console.log("initEquipementList", json);
+							//console.log("initEquipementList", json);
 							if (json.state === "ko") {
 								alert(json.error);
 							} else {
@@ -755,7 +756,7 @@
 						type: "GET",
 						//data: $this.serialize(),
 						success: function (json) {
-							console.log("initChangementEtatList", json);
+							//console.log("initChangementEtatList", json);
 							if (json.state === "ko") {
 								alert(json.error);
 							} else {
