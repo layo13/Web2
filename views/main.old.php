@@ -14,7 +14,7 @@
 				overflow-y: scroll;
 			}
 
-			img, [draggable=true] {
+			circle, [draggable=true] {
 				-moz-user-select: none;
 				-khtml-user-select: none;
 				-webkit-user-select: none;
@@ -48,11 +48,28 @@
 							<h3 class="panel-title">Liste des équipements</h3>
 						</div>
 					</div>
+					<div class="well">
+						<ul class="list-unstyled">
+							<li>Valider les formulaires</li>
+							<li>Finir le journal</li>
+						</ul>
+					</div>
 				</div>
 				<div class="col-md-6">
 					<div id="flash"></div>
 					<div id="main">
-						<svg id="graph" width="100%" height="600" style="border: 2px solid black;">
+						<!--<object data="test.svg" width="100%" height="100%" type="image/svg+xml">
+							<embed src="test.svg" width="500" height="500" type="image/svg+xml" />
+						</object>-->
+						<svg width="100%" height="600" style="border: 2px solid black;">
+						<line x1="40" y1="40" x2="200" y2="200" style="stroke:#000000;" data-from="C-G453SR65" data-to="C-G5TRI6GH" />
+						<line x1="200" y1="40" x2="200" y2="200" style="stroke:#000000;" data-from="C-RG5TB7H8" data-to="C-G5TRI6GH" />
+						<line x1="40" y1="200" x2="200" y2="200" style="stroke:#000000;" data-from="C-SR65G453" data-to="C-G5TRI6GH" />
+
+						<circle id="C-G453SR65" cx="40" cy="40" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
+						<circle id="C-G5TRI6GH" cx="200" cy="200" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
+						<circle id="C-RG5TB7H8" cx="200" cy="40" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
+						<circle id="C-SR65G453" cx="40" cy="200" r="40" style="stroke:#3e8f3e; fill:#5cb85c;" transform="matrix(1 0 0 1 0 0)" onmousedown="selectElement(evt)"/>
 						</svg>
 					</div>
 				</div>
@@ -60,7 +77,9 @@
 					<a id="link_simulator" href="#" class="btn btn-primary btn-lg">
 						<span class="glyphicon glyphicon-new-window"></span> Accéder au simulateur
 					</a>
-					<hr />
+					<a id="example" tabindex="0" class="btn btn-xs btn-info" role="button" data-toggle="popover" data-placement="left" data-trigger="focus" title="Dismissible popover" data-content="And here's some amazing content. It's very engaging. Right?">
+						<span class="glyphicon glyphicon-new-window"></span>
+					</a>
 					<div id="changement_etat_list" class="panel panel-default">
 						<div class="panel-heading">
 							<h3 class="panel-title">Journal</h3>
@@ -143,12 +162,6 @@
 						line.setAttribute("y2", currentY2);
 					}
 				}
-
-				var texte = document.getElementById("Text"+selectedElement.id);
-				var currentTextX = parseInt(texte.getAttribute("x")) + dx;
-				var currentTextY = parseInt(texte.getAttribute("y")) + dy;
-				texte.setAttribute("x", currentTextX);
-				texte.setAttribute("y", currentTextY);
 				// fin
 
 				selectedElement.setAttributeNS(null, "transform", newMatrix);
@@ -164,192 +177,6 @@
 					selectedElement = 0;
 				}
 			}
-
-			function makeImg(height, width, id, href, x ,y){
-						svgimg = document.createElementNS('http://www.w3.org/2000/svg','image');
-						svgimg.setAttribute('height',height);
-						svgimg.setAttribute('width',width);
-						svgimg.setAttribute('id', id);
-						svgimg.setAttributeNS('http://www.w3.org/1999/xlink','href',href);
-						svgimg.setAttribute('x',x);
-						svgimg.setAttribute('y',y);
-						svgimg.setAttribute('transform', "matrix(1 0 0 1 0 0)");
-						svgimg.setAttribute('onmousedown', "selectElement(evt)");
-
-						return svgimg;
-					}
-
-					function makeSVG(tag, attrs) {
-							var el= document.createElementNS('http://www.w3.org/2000/svg', tag);
-							for (var k in attrs)
-								el.setAttribute(k, attrs[k]);
-							return el;
-					}
-
-					function removeSvg(id){
-						img = document.getElementById(id);
-						text = document.getElementById("Text"+id);
-
-						// suppression des lignes
-						var lines = document.getElementsByTagName("line");
-						for (var i = 0; i < lines.length; i++) {
-							var line = lines[i];
-							if (line.dataset.from === id) {
-								document.getElementById("graph").removeChild(line);
-							}
-							if (line.dataset.to === id) {
-								document.getElementById("graph").removeChild(line);
-							}
-						}
-						// suppression du texte 
-						document.getElementById("graph").removeChild(text);
-						// suppression de l'image
-						document.getElementById("graph").removeChild(img);
-					}
-
-						function overlap(TestedEquipementX, TestedEquipementY, equipementX, equipementY){
-
-				        	// X axis overlap
-				        	if( (TestedEquipementX >= equipementX && (TestedEquipementX - 40 <= equipementX + 40)) || (TestedEquipementX <= equipementX && (TestedEquipementX + 40 >= equipementX - 40)) ){
-				        		// Y axis Overlap
-				        		if((TestedEquipementY >=equipementY && (TestedEquipementY - 40 <=equipementY + 40)) || (TestedEquipementY <=equipementY && (TestedEquipementY + 40 >=equipementY - 40))){
-				        			return true;
-				        		}
-				        	}
-
-				        	return false;
-				        }
-
-				        function changeEquipement(id, name, libelleTechnique, libelleFonctionnel, type){
-				        	changeEquipementState(id, libelleTechnique, libelleFonctionnel, type);
-				        	changeEquipementText(id, name);
-				        }
-
-				        function formatText(innerText){
-				        	if(innerText.length > 10){
-								innerText = innerText.substring(0, 10);
-								innerText += "[..]";
-							}
-				        	return innerText;
-				        }
-
-						function changeEquipementText(id, text){
-							document.getElementById("Text"+id).innerHTML = formatText(text);
-						}
-
-				        function changeEquipementState(id, libelleTechnique, libelleFonctionnel, type){
-
-				        	if(libelleTechnique !== "Fonctionnel"){
-				        		changeEquipementColor(id, "red", type);
-				        	}
-				        	else{
-				        		if(libelleFonctionnel === "En marche") {
-				        			changeEquipementColor(id, "green", type);
-				        		} else if(libelleFonctionnel === "Eteint") {
-				        			changeEquipementColor(id, "grey", type);
-				        		} else if (libelleFonctionnel === "En arrêt de maintenance"){
-				        			changeEquipementColor(id, "yellow", type);
-				        		}
-				        	}
-				        }
-
-				        function changeEquipementColor(id, color, type){
-
-				        	var folder;
-
-				        	switch(type) {
-							    case "Ordinateur fixe":
-							        folder = "workstation";
-							        break;
-							    case "Ordinateur portable":
-							        folder = "notebook";
-							        break;
-							    case "Imprimante":
-							        folder = "printer";
-							        break;
-							    case "Photocopieuse":
-							        folder = "scanner";
-							        break;
-							    case "Téléphone":
-							        folder = "smartphone";
-							        break;
-							    case "Routeur":
-							        folder = "stack";
-							        break;
-							    case "Serveur":
-							        folder = "switch";
-							        break;
-							    default: 
-							    	alert(type);
-							    	break;
-							}
-
-				        	equipement = document.getElementById(id);
-				        	equipement.setAttributeNS('http://www.w3.org/1999/xlink','href', "img/"+folder+"/"+color+".gif");
-				       
-				        }
-
-				        function getSvgVoidSpace(){
-
-							var cercles = document.getElementsByTagName("image"); 
-				        	var cercle;
-				        	var voidSpaceX = 0;
-				        	var voidSpaceY = 40;
-				        	var cercleX;
-				        	var cercleY;
-				        	var svgWidth = $("#graph").innerWidth();
-				        	var placed = false;
-
-				        	while(!placed){
-				        		voidSpaceX += 40;
-				        		placed = true;
-
-				        		if(cercles.length !== 0){
-					        		for (var i = 0; i < cercles.length; i++) {
-					        			cercle = cercles[i];
-					        			cercleX = parseInt(cercle.getAttribute("x"));
-										cercleY = parseInt(cercle.getAttribute("y"));
-					        			if(overlap(voidSpaceX, voidSpaceY, cercleX, cercleY)){
-					        				placed = false;
-					        			}
-					        		};
-					        	}
-					        	if((voidSpaceX + 40) > svgWidth){
-					        		voidSpaceX = 0;
-					        		voidSpaceY += 80;
-					        		placed = false;
-					        	}
-				        	}
-
-				        	return {"x":voidSpaceX, "y":voidSpaceY};
-				        }
-
-				        function drawLine(idEquipement, idPere){
-				        	var equipement = $("#"+idEquipement);
-							var pere = $("#"+idPere);
-							var x1 = parseInt(equipement.attr("x")) + parseInt(12);	
-							var y1 = parseInt(equipement.attr("y")) + parseInt(12);
-							var x2 = parseInt(pere.attr("x")) + parseInt(12);
-							var y2 = parseInt(pere.attr("y")) + parseInt(12);
-
-				        	var lien = makeSVG('line' , {"x1": x1 , "y1": y1 , "x2": x2 , "y2": y2 ,"style": "stroke:#000000;", "data-from": idEquipement, "data-to": idPere});
-							$("#graph").append(lien);
-				        }
-
-				        function drawEquipement(equipementId, name, libelleTechnique, libelleFonctionnel, type){
-				        	var coord = getSvgVoidSpace();
-							var x = coord.x;
-							var y = coord.y;
-							
-							var text 	= makeSVG('text' , {"id":"Text"+equipementId ,"x":x-15, "y":y-5, "fill":"black"});
-							var image 	= makeImg("24", "24", equipementId, "img/defaut.gif", x, y);
-							
-							$("#graph").append(image);
-							$("#graph").append(text);
-
-							changeEquipement(equipementId, name, libelleTechnique, libelleFonctionnel, type);
-							changeEquipementText(equipementId, name);
-				        }
 
 			/*(function(i){
 			 alert(i);
@@ -400,22 +227,8 @@
 
 						if (found === false) {
 							$("#ul_equipement").append(getLiEquipement(jsonEquipement));
-
-							if(document.getElementById(jsonEquipement.id) === null){
-								drawEquipement(jsonEquipement.id, jsonEquipement.nom, jsonEquipement.etatTechnique.libelle, jsonEquipement.etatFonctionnel.libelle, jsonEquipement.type.libelle);		
-								if(jsonEquipement.pere !== null){
-									if(document.getElementById(jsonEquipement.pere.id) === null){
-										drawEquipement(jsonEquipement.pere.id, jsonEquipement.pere.nom, jsonEquipement.pere.etatTechnique.libelle, jsonEquipement.pere.etatFonctionnel.libelle, jsonEquipement.pere.type.libelle);  // Infos à ajouter dans le JSON PLZ 
-									}
-									drawLine(jsonEquipement.id, jsonEquipement.pere.id);
-								}
-							}
 						} else {
 							$(liEquipement).find(".li-label").text(jsonEquipement.id + " - " + jsonEquipement.nom);
-
-							if(document.getElementById(jsonEquipement.id) !== null){
-								changeEquipement(jsonEquipement.id, jsonEquipement.nom, jsonEquipement.etatTechnique.libelle, jsonEquipement.etatFonctionnel.libelle, jsonEquipement.type.libelle);
-							}
 						}
 					}
 					callback(jsonEquipementList);
@@ -435,7 +248,6 @@
 						}
 						if (found === false) {
 							$(liEquipement).remove();
-							removeSvg($(liEquipement).attr("data-equipement-id"));
 						}
 					}
 				}
@@ -557,7 +369,7 @@
 					var equipementId = button.data('equipement-id') !== "undefined" ? button.data('equipement-id') : null;
 					var operation = button.data('operation');
 					var size = button.data('size');
-					
+
 					$(modal).find(".btn.btn-primary").unbind();
 
 					var modal = $(this);
@@ -645,7 +457,7 @@
 						$("#myModalBody").text("Voulez-vous vraiment supprimer cet équipement ?");
 						$(modal).find(".btn.btn-primary").click(function () {
 							$("#myModal").modal('hide');
-							
+							$(this).unbind();
 							$.ajax({
 								url: "<?php echo $url; ?>api/equipement/" + equipementId,
 								type: "DELETE",
@@ -866,9 +678,11 @@
 									$($this).unbind();
 									$("#myModal").modal('hide');
 
-									$("#myModal").find(".btn.btn-primary").unbind();
+									$("#myModal").find(".btn.btn-primary").click(function () {
+										$(this).unbind();
+									});
 
-									//$("#debug").html(html);
+									$("#debug").html(html);
 								}
 							});
 						} else {
@@ -990,53 +804,10 @@
 						}
 					});
 				}
-
-				function initSvg() {
-									$.ajax({
-										url: "<?php echo $url . "api/equipement"; ?>",
-										type: "GET",
-									
-									success: function (json) {
-										if (json.state === "ko") {
-											alert(json.error);
-										} else {
-											var jsonEquipements = json.content;
-											for (var i = 0; i < jsonEquipements.length; ++i) {
-
-												var found = false;
-												var jsonEquipement = jsonEquipements[i];
-
-												for (var j = 0; j < $("image").length; j++) {
-													var Equipement = $("image")[j];
-													if (jsonEquipement.id === $(Equipement).attr("id")) {
-														found = true;
-														break;
-													}
-												}
-
-												if(!found){
-													var equipementId = jsonEquipements[i].id;
-													drawEquipement(equipementId, jsonEquipements[i].nom, jsonEquipements[i].etatTechnique.libelle, jsonEquipements[i].etatFonctionnel.libelle, jsonEquipements[i].type.libelle);
-													
-													if(jsonEquipements[i].pere != null){
-														var pereId = jsonEquipements[i].pere.id;
-														if(document.getElementById(pereId) == null){
-															drawEquipement(pereId, jsonEquipements[i].pere.nom, jsonEquipements[i].pere.etatTechnique.libelle, jsonEquipements[i].pere.etatFonctionnel.libelle, jsonEquipements[i].pere.type.libelle);  // Infos à ajouter dans le JSON PLZ 
-														}
-														drawLine(equipementId, pereId);
-													}
-												}
-												
-											}
-										}
-									}
-								});
-							}
 				initEquipementList();
 				initChangementEtatList();
 				initSSEEquipement();
 				initSSEChangementEtat();
-				//initSvg();
 			});
 		</script>
 	</body>
