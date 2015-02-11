@@ -267,6 +267,7 @@
 						document.getElementById("main").innerHTML = "Sorry, your browser does not support server-sent events...";
 					}
 				}
+				
 				function initSSEChangementEtat() {
 					if (typeof (EventSource) !== "undefined") {
 						var sourceChangementEtat = new EventSource("<?php echo $url . "sse/changement-etat"; ?>");
@@ -368,6 +369,8 @@
 					var equipementId = button.data('equipement-id') !== "undefined" ? button.data('equipement-id') : null;
 					var operation = button.data('operation');
 					var size = button.data('size');
+
+					$(modal).find(".btn.btn-primary").unbind();
 
 					var modal = $(this);
 					setSizeModal(modal, size);
